@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: messenger-postgres
+
+    environment:
+      POSTGRES_DB: messenger
+      POSTGRES_USER: messenger
+      POSTGRES_PASSWORD: messenger
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d
+
+volumes:
+  postgres_data:
