@@ -9,3 +9,11 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: messenger-backend
+    ports:
+      - "8080:8080"
+    restart: unless-stopped

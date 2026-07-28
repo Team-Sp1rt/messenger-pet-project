@@ -1,0 +1,23 @@
+# Папки сборки
+target/
+.m2/
+
+# Логи
+*.log
+*.tmp
+
+# Файлы IDE
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+
+# Системные файлы
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
