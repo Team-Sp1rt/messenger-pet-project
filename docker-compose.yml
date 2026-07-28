@@ -1,4 +1,22 @@
 services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: messenger-frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: messenger-backend
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
   postgres:
     image: postgres:16
     container_name: messenger-postgres
