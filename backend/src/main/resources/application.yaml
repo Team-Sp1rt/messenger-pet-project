@@ -1,3 +1,7 @@
 spring:
   application:
     name: backend
+  datasource:
+    url: jdbc:postgresql://localhost:5433/messenger
+    username: messenger
+    password: messenger
