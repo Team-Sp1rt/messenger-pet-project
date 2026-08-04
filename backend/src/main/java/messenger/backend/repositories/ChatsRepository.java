@@ -6,6 +6,7 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 
 @Repository
 public class ChatsRepository {
@@ -15,7 +16,7 @@ public class ChatsRepository {
         this.dataSource = dataSource;
     }
 
-    public void showEverything() throws Exception{
+    public void showEverything() throws SQLException {
         Connection connection = dataSource.getConnection();
 
         String sql = "SELECT * FROM chats";

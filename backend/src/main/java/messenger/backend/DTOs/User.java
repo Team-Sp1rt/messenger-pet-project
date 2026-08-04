@@ -1,4 +1,6 @@
 package messenger.backend.DTOs;
 
-public class User {
+import java.time.LocalDate;
+
+public record User(long id, String username, String bio, LocalDate birthday) {
 }

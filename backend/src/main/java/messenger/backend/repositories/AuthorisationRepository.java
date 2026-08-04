@@ -26,13 +26,13 @@ public class AuthorisationRepository {
 
         long id;
         String login;
-        String password;
+        String passwordHash;
 
         while(resultSet.next()) {
             id = resultSet.getLong("id");
             login = resultSet.getString("login");
-            password = resultSet.getString("password");
-            System.out.println(id + " " + login + " " + password);
+            passwordHash = resultSet.getString("password_hash");
+            System.out.println(id + " " + login + " " + passwordHash);
         }
 
         resultSet.close();
