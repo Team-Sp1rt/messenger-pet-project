@@ -1,4 +1,4 @@
-package messenger.backend.DTOs;
+package messenger.backend.dtos;
 
 import java.time.LocalDate;
 

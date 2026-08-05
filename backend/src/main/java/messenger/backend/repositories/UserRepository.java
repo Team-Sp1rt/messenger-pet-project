@@ -1,12 +1,11 @@
 package messenger.backend.repositories;
 
-import messenger.backend.DTOs.User;
+import messenger.backend.dtos.User;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
 import java.sql.*;
 import java.time.LocalDate;
-import java.util.Objects;
 
 @Repository
 public class UserRepository {
@@ -16,41 +15,7 @@ public class UserRepository {
         this.dataSource = dataSource;
     }
 
-    public void createNewUser(String login, String passwordHash, String username, LocalDate birthday) throws SQLException {
-        long id = insertNewAuthorisationReturnsUserID(login, passwordHash);
-        insertNewUser(id, username, birthday);
-    }
-
-    public long insertNewAuthorisationReturnsUserID(String login, String passwordHash) throws SQLException {
-        String sql = """
-            INSERT INTO authorisation(login, password_hash)
-            VALUES(?, ?)
-            RETURNING id;
-            """;
-
-        long id = 0;
-
-        try (Connection connection = dataSource.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-
-            preparedStatement.setString(1, login);
-            preparedStatement.setString(2, passwordHash);
-
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                if(resultSet.next()) {
-                    id = resultSet.getLong("id");
-                }
-            }
-        }
-
-        if (id == 0) {
-            throw new SQLException("Couldn't add new authorisation data due to unknown reason");
-        }
-
-        return id;
-    }
-
-    private void insertNewUser(long id, String username, LocalDate birthday) throws SQLException {
+    public void insertNewUser(long id, String username, LocalDate birthday) throws SQLException {
         String sql = """
             INSERT INTO users(id, username, birthday)
             VALUES(?, ?, ?);
@@ -67,67 +32,7 @@ public class UserRepository {
         }
     }
 
-    public String getPasswordHashByLogin(String login) throws SQLException {
-        String sql = """
-            SELECT password_hash FROM authorisation
-            WHERE login = ?
-            """;
-
-        String passwordHash = "";
-
-        try (Connection connection = dataSource.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-
-            preparedStatement.setString(1, login);
-
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                if(resultSet.next()) {
-                    passwordHash = resultSet.getString("password_hash");
-                }
-            }
-        }
-
-        if (passwordHash.isEmpty()) {
-            throw new SQLException("Couldn't get password hash due to unknown reason");
-        }
-
-        return passwordHash;
-    }
-
-    public User getUserByLogin(String login) throws SQLException {
-        long userID = getUserIDByLogin(login);
-        return getUserByID(userID);
-    }
-
-    private long getUserIDByLogin(String login) throws SQLException {
-        String sql = """
-            SELECT id FROM authorisation
-            WHERE login = ?
-            """;
-
-
-        long id = 0;
-
-        try (Connection connection = dataSource.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-
-            preparedStatement.setString(1, login);
-
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                if(resultSet.next()) {
-                    id = resultSet.getLong("id");
-                }
-            }
-        }
-
-        if (id == 0) {
-            throw new SQLException("Couldn't get user id due to unknown reason");
-        }
-
-        return id;
-    }
-
-    private User getUserByID(long id) throws SQLException {
+    public User getUserByID(long id) throws SQLException {
         String sql = """
             SELECT username, bio, birthday FROM users
             WHERE id = ?;
