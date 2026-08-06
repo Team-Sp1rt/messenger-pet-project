@@ -80,6 +80,7 @@ public class UserRepository {
         }
     }
 
+    @Deprecated
     public void showEverything() throws SQLException{
         String sql = "SELECT * FROM users";
 
