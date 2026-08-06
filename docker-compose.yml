@@ -27,11 +27,11 @@ services:
       POSTGRES_PASSWORD: messenger
 
     ports:
-      - "5432:5432"
+      - "5433:5432"
 
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./database/init:/docker-entrypoint-initdb.d
+      - ./backend/src/main/resources:/docker-entrypoint-initdb.d
 
 volumes:
   postgres_data:
