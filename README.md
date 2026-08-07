@@ -25,7 +25,8 @@ messenger-pet-project
 │   │   │   │           ├───repositories
 │   │   │   │           └───services
 │   │   │   └───resources
-│   │   │       ├───
+│   │   │       ├───application.yaml
+│   │   │       └─── init.sql (их много)
 │   │   └───test
 │   │       └───java
 │   │           └───messenger
