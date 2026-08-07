@@ -29,7 +29,7 @@ class UserRepositoryIntegrationTest {
             .withDatabaseName("messenger")
             .withUsername("messenger")
             .withPassword("messenger")
-            .withInitScripts("01_authorisation.sql","03_users.sql");
+            .withInitScripts("01_authorisation.sql", "02_users.sql");
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {

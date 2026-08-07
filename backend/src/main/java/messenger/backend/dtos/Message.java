@@ -1,4 +1,4 @@
 package messenger.backend.dtos;
 
-public class Message {
+public record Message() {
 }
