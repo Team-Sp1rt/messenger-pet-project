@@ -48,7 +48,7 @@ public class UserRepository {
             preparedStatement.setLong(1, id);
 
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                while(resultSet.next()) {
+                if (resultSet.next()) {
                     username = resultSet.getString("username");
                     bio = resultSet.getString("bio");
                     birthday = resultSet.getObject("birthday", LocalDate.class);
