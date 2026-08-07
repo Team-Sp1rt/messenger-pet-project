@@ -78,7 +78,6 @@ public class AuthorisationRepository {
             WHERE login = ?
             """;
 
-
         long id = 0;
 
         try (Connection connection = dataSource.getConnection();
@@ -100,6 +99,7 @@ public class AuthorisationRepository {
         return id;
     }
 
+    @Deprecated
     public void showEverything() throws Exception{
         Connection connection = dataSource.getConnection();
 
