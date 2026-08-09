@@ -1,7 +1,9 @@
 package messenger.backend.services;
 
+import messenger.backend.exceptions.UserAlreadyExistsException;
 import messenger.backend.repositories.AuthorisationRepository;
 import messenger.backend.repositories.UserRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,16 +14,29 @@ import java.time.LocalDate;
 public class RegistrationService {
     private final AuthorisationRepository authorisationRepository;
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public RegistrationService(AuthorisationRepository authorisationRepository, UserRepository userRepository) {
+    public RegistrationService(AuthorisationRepository authorisationRepository,
+                               UserRepository userRepository,
+                               PasswordEncoder passwordEncoder) {
         this.authorisationRepository = authorisationRepository;
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
-    //TODO: Андрей, сделай обработчик SQLException, не кидай его выше
-    @Transactional //Transactional делает метод атомарным, либо обе записи прошли, либо ничего не записалось
-    public void registerUser(String login, String passwordHash, String username, LocalDate birthday) throws SQLException {
-        long id = authorisationRepository.insertNewAuthorisationReturnsUserID(login, passwordHash);
-        userRepository.insertNewUser(id, username, birthday);
+    @Transactional
+    public void registerUser(String login, String password, String username, LocalDate birthday) {
+        String passwordHash = passwordEncoder.encode(password);
+
+        try {
+            long id = authorisationRepository.insertNewAuthorisationReturnsUserID(login, passwordHash);
+            userRepository.insertNewUser(id, username, birthday);
+        } catch (SQLException e) {
+            if ("23505".equals(e.getSQLState())) {
+                throw new UserAlreadyExistsException("A user with this username already exists");
+            } else {
+                throw new RuntimeException("Failed to register the user", e);
+            }
+        }
     }
 }
