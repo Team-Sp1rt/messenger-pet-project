@@ -16,6 +16,31 @@ public class ChatsRepository {
         this.dataSource = dataSource;
     }
 
+    public long insertNewChatReturnsChatID() throws SQLException {
+        String sql = """
+            INSERT INTO chats
+            DEFAULT VALUES
+            RETURNING id;
+            """;
+
+        long id = 0;
+
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql);
+             ResultSet resultSet = preparedStatement.executeQuery()) {
+                if(resultSet.next()) {
+                    id = resultSet.getLong("id");
+                }
+        }
+
+        if (id == 0) {
+            throw new SQLException("Couldn't insert new chat due to unknown reason");
+        }
+
+        return id;
+    }
+
+    @Deprecated
     public void showEverything() throws SQLException {
         Connection connection = dataSource.getConnection();
 

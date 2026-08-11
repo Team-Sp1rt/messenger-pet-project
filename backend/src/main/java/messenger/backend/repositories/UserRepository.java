@@ -87,7 +87,6 @@ public class UserRepository {
         try (Connection connection = dataSource.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
 
-
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 long id;
                 String username;
