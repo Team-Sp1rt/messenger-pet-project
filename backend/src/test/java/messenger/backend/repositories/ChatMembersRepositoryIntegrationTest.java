@@ -1,6 +1,5 @@
 package messenger.backend.repositories;
 
-import messenger.backend.dtos.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,20 +15,21 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDate;
+import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
 @Testcontainers
-class UserRepositoryIntegrationTest {
-
+public class ChatMembersRepositoryIntegrationTest {
     @Container
     static PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:16")
             .withDatabaseName("messenger")
             .withUsername("messenger")
             .withPassword("messenger")
-            .withInitScripts("01_authorisation.sql", "02_users.sql");
+            .withInitScripts("01_authorisation.sql", "02_users.sql", "03_chats.sql", "04_chat_members.sql");
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
@@ -39,54 +39,48 @@ class UserRepositoryIntegrationTest {
     }
 
     @Autowired
-    UserRepository userRepository;
-    @Autowired
     AuthorisationRepository authorisationRepository;
     @Autowired
+    UserRepository userRepository;
+    @Autowired
+    ChatsRepository chatsRepository;
+    @Autowired
+    ChatMembersRepository chatMembersRepository;
+
+    @Autowired
     DataSource dataSource;
+
+    private final int USER = 0;
+    private final int CHAT = 1;
+
 
     @BeforeEach
     void cleanDatabase() throws SQLException {
         try (Connection conn = dataSource.getConnection();
              Statement stmt = conn.createStatement()) {
-            stmt.execute("TRUNCATE TABLE users, authorisation RESTART IDENTITY CASCADE");
+            stmt.execute("TRUNCATE TABLE authorisation, users, chats, chat_members RESTART IDENTITY CASCADE");
         }
     }
 
-    private long givenDBWithUser(String username, LocalDate birthday) throws SQLException {
-        long id = authorisationRepository.insertNewAuthorisationReturnsUserID("meow", "meow-meow");
-        userRepository.insertNewUser(id, username, birthday);
-        return id;
-    }
-
-    private void thenUserDataShouldBeCorrect(User user, long id, String username, String bio, LocalDate birthday) {
-        assertEquals(id, user.id());
-        assertEquals(username, user.username());
-        assertEquals(bio, user.bio());
-        assertEquals(birthday, user.birthday());
+    private List<Long> givenFilledTabelsReturnsListOfIDs() throws SQLException {
+        long userID = authorisationRepository.insertNewAuthorisationReturnsUserID("user1", "user1");
+        userRepository.insertNewUser(userID, "user1", LocalDate.of(1,1,1));
+        long chatID = chatsRepository.insertNewChatReturnsChatID();
+        return List.of(userID, chatID);
     }
 
     @Test
-    void insertNewUser_thenGetUserByID_returnsCorrectData() throws SQLException {
-        long id = givenDBWithUser("meow", LocalDate.of(2000, 1, 1));
+    void insertNewChatMember_thenGetAllMembersOfTheChat_returnsSetWithCorrectData() throws SQLException {
+        List<Long> ids = givenFilledTabelsReturnsListOfIDs();
 
-        User user = userRepository.getUserByID(id);
+        chatMembersRepository.insertNewChatMember(ids.get(USER), ids.get(CHAT));
+        Set<Long> membersOfTheChat = chatMembersRepository.getAllMembersOfTheChat(ids.get(CHAT));
 
-        thenUserDataShouldBeCorrect(user, id, "meow", null, LocalDate.of(2000, 1, 1));
+        assertEquals(Set.of(ids.get(USER)), membersOfTheChat);
     }
 
     @Test
-    void changeUserBioByID_thenGetUserByID_returnsCorrcetData() throws SQLException {
-        long id = givenDBWithUser("meow", LocalDate.of(2000, 1, 1));
-        userRepository.changeUserBioByID(id, "meow-meow-meow");
-
-        User user = userRepository.getUserByID(id);
-
-        thenUserDataShouldBeCorrect(user, id, "meow", "meow-meow-meow", LocalDate.of(2000, 1, 1));
-    }
-
-    @Test
-    void getUserByIDTest_incorrectID_throwsSQLException() {
-        assertThrows(SQLException.class, () -> userRepository.getUserByID(13));
+    void getAllMembersOfTheChat_thereIsNoMembersInSpecifiedChat_throwsSQLException() {
+        assertThrows(SQLException.class, () -> chatMembersRepository.getAllMembersOfTheChat(1));
     }
 }

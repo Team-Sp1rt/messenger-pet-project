@@ -1,5 +1,6 @@
 package messenger.backend.repositories;
 
+import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
@@ -23,26 +24,27 @@ public class AuthorisationRepository {
             RETURNING id;
             """;
 
-        long id = 0;
-
-        try (Connection connection = dataSource.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-
+        Connection connection = DataSourceUtils.getConnection(dataSource);
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setString(1, login);
             preparedStatement.setString(2, passwordHash);
 
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                long id = 0;
+
                 if(resultSet.next()) {
                     id = resultSet.getLong("id");
                 }
+
+                if (id == 0) {
+                    throw new SQLException("Couldn't add new authorisation data due to unknown reason");
+                }
+
+                return id;
             }
+        } finally {
+            DataSourceUtils.releaseConnection(connection, dataSource);
         }
-
-        if (id == 0) {
-            throw new SQLException("Couldn't add new authorisation data due to unknown reason");
-        }
-
-        return id;
     }
 
     public String getPasswordHashByLogin(String login) throws SQLException {
@@ -51,25 +53,27 @@ public class AuthorisationRepository {
             WHERE login = ?
             """;
 
-        String passwordHash = "";
-
-        try (Connection connection = dataSource.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+        Connection connection = DataSourceUtils.getConnection(dataSource);
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
 
             preparedStatement.setString(1, login);
 
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                String passwordHash = "";
+
                 if(resultSet.next()) {
                     passwordHash = resultSet.getString("password_hash");
                 }
+
+                if (passwordHash.isEmpty()) {
+                    throw new SQLException("Couldn't get password hash due to unknown reason");
+                }
+
+                return passwordHash;
             }
+        } finally {
+            DataSourceUtils.releaseConnection(connection, dataSource);
         }
-
-        if (passwordHash.isEmpty()) {
-            throw new SQLException("Couldn't get password hash due to unknown reason");
-        }
-
-        return passwordHash;
     }
 
     public long getUserIDByLogin(String login) throws SQLException {
@@ -78,25 +82,26 @@ public class AuthorisationRepository {
             WHERE login = ?
             """;
 
-        long id = 0;
-
-        try (Connection connection = dataSource.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-
+        Connection connection = DataSourceUtils.getConnection(dataSource);
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setString(1, login);
 
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                long id = 0;
+
                 if(resultSet.next()) {
                     id = resultSet.getLong("id");
                 }
+
+                if (id == 0) {
+                    throw new SQLException("Couldn't get user id due to unknown reason");
+                }
+
+                return id;
             }
+        } finally {
+            DataSourceUtils.releaseConnection(connection, dataSource);
         }
-
-        if (id == 0) {
-            throw new SQLException("Couldn't get user id due to unknown reason");
-        }
-
-        return id;
     }
 
     @Deprecated

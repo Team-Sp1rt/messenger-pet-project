@@ -1,8 +1,10 @@
 package messenger.backend.repositories;
 
+import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
+import javax.xml.crypto.Data;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -23,21 +25,23 @@ public class ChatsRepository {
             RETURNING id;
             """;
 
-        long id = 0;
-
-        try (Connection connection = dataSource.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql);
+        Connection connection = DataSourceUtils.getConnection(dataSource);
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql);
              ResultSet resultSet = preparedStatement.executeQuery()) {
-                if(resultSet.next()) {
-                    id = resultSet.getLong("id");
-                }
-        }
+            long id = 0;
 
-        if (id == 0) {
-            throw new SQLException("Couldn't insert new chat due to unknown reason");
-        }
+            if(resultSet.next()) {
+                id = resultSet.getLong("id");
+            }
 
-        return id;
+            if (id == 0) {
+                throw new SQLException("Couldn't insert new chat due to unknown reason");
+            }
+
+            return id;
+        } finally {
+            DataSourceUtils.releaseConnection(connection, dataSource);
+        }
     }
 
     @Deprecated

@@ -1,6 +1,7 @@
 package messenger.backend.repositories;
 
 import messenger.backend.dtos.User;
+import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
@@ -21,14 +22,15 @@ public class UserRepository {
             VALUES(?, ?, ?);
             """;
 
-        try (Connection connection = dataSource.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-
+        Connection connection = DataSourceUtils.getConnection(dataSource);
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setLong(1, id);
             preparedStatement.setString(2, username);
             preparedStatement.setObject(3, birthday);
 
             preparedStatement.execute();
+        } finally {
+            DataSourceUtils.releaseConnection(connection, dataSource);
         }
     }
 
@@ -38,14 +40,13 @@ public class UserRepository {
             WHERE id = ?;
             """;
 
-        String username = "";
-        String bio = "";
-        LocalDate birthday = LocalDate.of(1, 1, 1);
-
-        try (Connection connection = dataSource.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-
+        Connection connection = DataSourceUtils.getConnection(dataSource);
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setLong(1, id);
+
+            String username = "";
+            String bio = "";
+            LocalDate birthday = LocalDate.of(1, 1, 1);
 
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 if (resultSet.next()) {
@@ -54,13 +55,15 @@ public class UserRepository {
                     birthday = resultSet.getObject("birthday", LocalDate.class);
                 }
             }
-        }
 
-        if (username.isEmpty() || birthday.isEqual(LocalDate.of(1, 1 ,1))) {
-            throw new SQLException("Couldn't get user due to unknown reason");
-        }
+            if (username.isEmpty() || birthday.isEqual(LocalDate.of(1, 1 ,1))) {
+                throw new SQLException("Couldn't get user due to unknown reason");
+            }
 
-        return new User(id, username, bio, birthday);
+            return new User(id, username, bio, birthday);
+        } finally {
+            DataSourceUtils.releaseConnection(connection, dataSource);
+        }
     }
 
     public void changeUserBioByID(long id, String newBio) throws SQLException {
@@ -70,13 +73,14 @@ public class UserRepository {
             WHERE id = ?
             """;
 
-        try (Connection connection = dataSource.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-
+        Connection connection = DataSourceUtils.getConnection(dataSource);
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setString(1, newBio);
             preparedStatement.setLong(2, id);
 
             preparedStatement.execute();
+        } finally {
+            DataSourceUtils.releaseConnection(connection, dataSource);
         }
     }
 

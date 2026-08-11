@@ -1,5 +1,6 @@
 package messenger.backend.repositories;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -10,7 +11,9 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
 import javax.sql.DataSource;
+import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Statement;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -33,12 +36,19 @@ public class ChatsRepositoryIntegrationTest {
 
     @Autowired
     ChatsRepository chatsRepository;
-
     @Autowired
     DataSource dataSource;
 
+    @BeforeEach
+    void cleanDatabase() throws SQLException {
+        try (Connection conn = dataSource.getConnection();
+             Statement stmt = conn.createStatement()) {
+            stmt.execute("TRUNCATE TABLE chats RESTART IDENTITY CASCADE");
+        }
+    }
+
     @Test
-    void insertNewChatReturnsChatID_insertingToChats_IDsMustBeIncrementing() throws SQLException {
+    void insertNewChatReturnsChatID_IDsShouldBeIncrementing() throws SQLException {
         long firstID = chatsRepository.insertNewChatReturnsChatID();
         long secondID = chatsRepository.insertNewChatReturnsChatID();
 
