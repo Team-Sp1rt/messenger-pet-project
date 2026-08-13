@@ -1,6 +1,7 @@
 package messenger.backend.repositories;
 
 import messenger.backend.dtos.Message;
+import messenger.backend.dtos.NewMessage;
 import messenger.backend.dtos.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -76,7 +77,7 @@ public class MessagesRepositoryIntegrationTest {
         String content = "meow";
 
         Message message = messagesRepository.insertNewMessageReturnsMessage(
-                new Message(null, ids.get(FIRST_CHAT), ids.get(FIRST_USER), content, null)
+                new NewMessage(ids.get(FIRST_CHAT), ids.get(FIRST_USER), content)
         );
 
         thenMessageShouldBeCorrect(message, ids.get(FIRST_CHAT), ids.get(FIRST_USER), content);
@@ -89,10 +90,10 @@ public class MessagesRepositoryIntegrationTest {
         String content = "meow";
 
         Message firstMessage = messagesRepository.insertNewMessageReturnsMessage(
-                new Message(null, ids.get(FIRST_CHAT), ids.get(FIRST_USER), content, null)
+                new NewMessage(ids.get(FIRST_CHAT), ids.get(FIRST_USER), content)
         );
         Message secondMessage = messagesRepository.insertNewMessageReturnsMessage(
-                new Message(null, ids.get(FIRST_CHAT), ids.get(FIRST_USER), content, null)
+                new NewMessage(ids.get(FIRST_CHAT), ids.get(FIRST_USER), content)
         );
 
         thenIDsAndCreatedAtShouldBeIncreasing(firstMessage, secondMessage);
@@ -159,13 +160,13 @@ public class MessagesRepositoryIntegrationTest {
         String content = "meow";
 
         ids.add(messagesRepository.insertNewMessageReturnsMessage(
-                new Message(null, ids.get(FIRST_CHAT), ids.get(FIRST_USER), content, null)
+                new NewMessage(ids.get(FIRST_CHAT), ids.get(FIRST_USER), content)
         ).id());
         ids.add(messagesRepository.insertNewMessageReturnsMessage(
-                new Message(null, ids.get(FIRST_CHAT), ids.get(SECOND_USER), content, null)
+                new NewMessage(ids.get(FIRST_CHAT), ids.get(SECOND_USER), content)
         ).id());
         ids.add(messagesRepository.insertNewMessageReturnsMessage(
-                new Message(null, ids.get(SECOND_CHAT), ids.get(FIRST_USER), content, null)
+                new NewMessage(ids.get(SECOND_CHAT), ids.get(FIRST_USER), content)
         ).id());
 
         return ids;

@@ -59,9 +59,9 @@ public class ChatMembersRepository {
                 }
 
                 return userIDsSet;
-            } finally {
-                DataSourceUtils.releaseConnection(connection, dataSource);
             }
+        } finally {
+            DataSourceUtils.releaseConnection(connection, dataSource);
         }
     }
 
@@ -87,9 +87,9 @@ public class ChatMembersRepository {
                 }
 
                 return chatIDsSet;
-            } finally {
-                DataSourceUtils.releaseConnection(connection, dataSource);
             }
+        } finally {
+            DataSourceUtils.releaseConnection(connection, dataSource);
         }
     }
 }

@@ -91,8 +91,8 @@ public class ChatMembersRepositoryIntegrationTest {
         List<Long> ids = givenFilledTablesReturnsListOfIDs();
 
         assertThrows(SQLException.class, () -> {
-            chatMembersRepository.insertNewChatMember(ids.get(FIRST_USER), ids.get(FIRST_CHAT));
-            chatMembersRepository.insertNewChatMember(ids.get(FIRST_USER), ids.get(FIRST_CHAT));
+            chatMembersRepository.insertNewChatMember(ids.get(FIRST_CHAT), ids.get(FIRST_USER));
+            chatMembersRepository.insertNewChatMember(ids.get(FIRST_CHAT), ids.get(FIRST_USER));
         });
     }
 

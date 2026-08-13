@@ -1,6 +1,7 @@
 package messenger.backend.repositories;
 
 import messenger.backend.dtos.Message;
+import messenger.backend.dtos.NewMessage;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Repository;
 
@@ -17,8 +18,7 @@ public class MessagesRepository {
         this.dataSource = dataSource;
     }
 
-    // Алёне: ну как-то не очев что месседж можно и нужно передавать с нулёвыми айдишником и таймстампом
-    public Message insertNewMessageReturnsMessage(Message newMessage) throws SQLException {
+    public Message insertNewMessageReturnsMessage(NewMessage newMessage) throws SQLException {
         String sql = """
             INSERT INTO messages(chat_id, user_id, content)
             VALUES (?, ?, ?)
@@ -88,7 +88,7 @@ public class MessagesRepository {
         String sql = """
             SELECT * FROM messages
             WHERE chat_id = ?
-            ORDER BY created_at DESC
+            ORDER BY created_at DESC, id DESC
             LIMIT ?;
             """;
 
@@ -109,7 +109,7 @@ public class MessagesRepository {
         String sql = """
             SELECT * FROM messages
             WHERE chat_id = ? AND created_at < ?
-            ORDER BY created_at DESC
+            ORDER BY created_at DESC, id DESC
             LIMIT ?;
             """;
 
