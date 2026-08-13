@@ -37,7 +37,6 @@ public class AuthorisationRepositoryIntegrationTest {
 
     @Autowired
     AuthorisationRepository authorisationRepository;
-
     @Autowired
     DataSource dataSource;
 
@@ -53,9 +52,9 @@ public class AuthorisationRepositoryIntegrationTest {
     void insertNewAuthorization_thenGetUserIDByLoginAndGetPasswordHashByLogin_returnsCorrectData() throws SQLException {
         String login = "meow";
         String passwordHash = "meow-meow";
-        long id = authorisationRepository.insertNewAuthorisationReturnsUserID(login, passwordHash);
+        Long id = authorisationRepository.insertNewAuthorisationReturnsUserID(login, passwordHash);
 
-        long idFromDB = authorisationRepository.getUserIDByLogin(login);
+        Long idFromDB = authorisationRepository.getUserIDByLogin(login);
         String passwordHashFromDB = authorisationRepository.getPasswordHashByLogin(login);
 
         assertEquals(id, idFromDB);
@@ -63,17 +62,17 @@ public class AuthorisationRepositoryIntegrationTest {
     }
 
     @Test
-    void getUserIDByLogin_noUserWithSpecifiedLogin_throwsSQLException() throws SQLException {
+    void getUserIDByLogin_noUserWithSpecifiedLogin_throwsSQLException() {
         assertThrows(SQLException.class, () -> authorisationRepository.getUserIDByLogin("meow"));
     }
 
     @Test
-    void getPasswordHashByLogin_noUserWithSpecifiedLogin_throwsSQLException() throws SQLException {
+    void getPasswordHashByLogin_noUserWithSpecifiedLogin_throwsSQLException() {
         assertThrows(SQLException.class, () -> authorisationRepository.getPasswordHashByLogin("meow"));
     }
 
     @Test
-    void insertNewAuthorisation_SpecifiedLoginIsAlreadyInDB_throwsSQLException() throws SQLException {
+    void insertNewAuthorisation_SpecifiedLoginIsAlreadyInDB_throwsSQLException() {
         assertThrows(SQLException.class, () -> {
             authorisationRepository.insertNewAuthorisationReturnsUserID("meow", "meow-meow");
             authorisationRepository.insertNewAuthorisationReturnsUserID("meow", "meow-meow");

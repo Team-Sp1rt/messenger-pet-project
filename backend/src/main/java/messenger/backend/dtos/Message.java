@@ -1,4 +1,6 @@
 package messenger.backend.dtos;
 
-public class Message {
+import java.sql.Timestamp;
+
+public record Message(Long id, Long chatID, Long userID, String content, Timestamp createdAt) {
 }
