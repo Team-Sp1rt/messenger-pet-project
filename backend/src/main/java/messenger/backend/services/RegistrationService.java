@@ -1,5 +1,6 @@
 package messenger.backend.services;
 
+import messenger.backend.dtos.User;
 import messenger.backend.repositories.AuthorisationRepository;
 import messenger.backend.repositories.UserRepository;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,6 @@ public class RegistrationService {
     @Transactional //Transactional делает метод атомарным, либо обе записи прошли, либо ничего не записалось
     public void registerUser(String login, String passwordHash, String username, LocalDate birthday) throws SQLException {
         long id = authorisationRepository.insertNewAuthorisationReturnsUserID(login, passwordHash);
-        userRepository.insertNewUser(id, username, birthday);
+        userRepository.insertNewUser(new User(id, username, null, birthday));
     }
 }

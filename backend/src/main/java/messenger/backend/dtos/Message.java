@@ -2,5 +2,5 @@ package messenger.backend.dtos;
 
 import java.sql.Timestamp;
 
-public record Message(long id, long chatID, long userID, String content, Timestamp timestamp) {
+public record Message(Long id, Long chatID, Long userID, String content, Timestamp createdAt) {
 }

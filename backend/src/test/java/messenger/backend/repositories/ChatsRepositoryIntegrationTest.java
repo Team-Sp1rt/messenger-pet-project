@@ -43,14 +43,14 @@ public class ChatsRepositoryIntegrationTest {
     void cleanDatabase() throws SQLException {
         try (Connection conn = dataSource.getConnection();
              Statement stmt = conn.createStatement()) {
-            stmt.execute("TRUNCATE TABLE chats RESTART IDENTITY CASCADE");
+            stmt.execute("TRUNCATE TABLE chats RESTART IDENTITY");
         }
     }
 
     @Test
     void insertNewChatReturnsChatID_IDsShouldBeIncrementing() throws SQLException {
-        long firstID = chatsRepository.insertNewChatReturnsChatID();
-        long secondID = chatsRepository.insertNewChatReturnsChatID();
+        Long firstID = chatsRepository.insertNewChatReturnsChatID();
+        Long secondID = chatsRepository.insertNewChatReturnsChatID();
 
         assertEquals(firstID + 1, secondID);
     }

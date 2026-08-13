@@ -1,5 +1,6 @@
 package messenger.backend.repositories;
 
+import messenger.backend.dtos.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -46,13 +48,13 @@ public class ChatMembersRepositoryIntegrationTest {
     ChatsRepository chatsRepository;
     @Autowired
     ChatMembersRepository chatMembersRepository;
-
     @Autowired
     DataSource dataSource;
 
-    private final int USER = 0;
-    private final int CHAT = 1;
-
+    private final int FIRST_USER = 0;
+    private final int SECOND_USER = 1;
+    private final int FIRST_CHAT = 2;
+    private final int SECOND_CHAT = 3;
 
     @BeforeEach
     void cleanDatabase() throws SQLException {
@@ -62,25 +64,55 @@ public class ChatMembersRepositoryIntegrationTest {
         }
     }
 
-    private List<Long> givenFilledTabelsReturnsListOfIDs() throws SQLException {
-        long userID = authorisationRepository.insertNewAuthorisationReturnsUserID("user1", "user1");
-        userRepository.insertNewUser(userID, "user1", LocalDate.of(1,1,1));
-        long chatID = chatsRepository.insertNewChatReturnsChatID();
-        return List.of(userID, chatID);
+    @Test
+    void insertNewChatMember_thenGetAllMembersOfTheChat_returnsSetWithCorrectData() throws SQLException {
+        List<Long> ids = givenFilledTablesReturnsListOfIDs();
+
+        chatMembersRepository.insertNewChatMember(ids.get(FIRST_CHAT), ids.get(FIRST_USER));
+        chatMembersRepository.insertNewChatMember(ids.get(FIRST_CHAT), ids.get(SECOND_USER));
+        Set<Long> membersOfTheChat = chatMembersRepository.getAllMembersOfTheChat(ids.get(FIRST_CHAT));
+
+        assertEquals(Set.of(ids.get(FIRST_USER), ids.get(SECOND_USER)), membersOfTheChat);
     }
 
     @Test
-    void insertNewChatMember_thenGetAllMembersOfTheChat_returnsSetWithCorrectData() throws SQLException {
-        List<Long> ids = givenFilledTabelsReturnsListOfIDs();
+    void insertNewChatMember_thenGetAllChatsOfTheMember_returnsSetWithCorrectData() throws SQLException {
+        List<Long> ids = givenFilledTablesReturnsListOfIDs();
 
-        chatMembersRepository.insertNewChatMember(ids.get(USER), ids.get(CHAT));
-        Set<Long> membersOfTheChat = chatMembersRepository.getAllMembersOfTheChat(ids.get(CHAT));
+        chatMembersRepository.insertNewChatMember(ids.get(FIRST_CHAT), ids.get(FIRST_USER));
+        chatMembersRepository.insertNewChatMember(ids.get(SECOND_CHAT), ids.get(FIRST_USER));
+        Set<Long> membersOfTheChat = chatMembersRepository.getAllChatsOfTheMember(ids.get(FIRST_USER));
 
-        assertEquals(Set.of(ids.get(USER)), membersOfTheChat);
+        assertEquals(Set.of(ids.get(FIRST_CHAT), ids.get(SECOND_CHAT)), membersOfTheChat);
+    }
+
+    @Test
+    void insertingNewChatMember_insertingSameDataTwice_throwsSQLException() throws SQLException {
+        List<Long> ids = givenFilledTablesReturnsListOfIDs();
+
+        assertThrows(SQLException.class, () -> {
+            chatMembersRepository.insertNewChatMember(ids.get(FIRST_USER), ids.get(FIRST_CHAT));
+            chatMembersRepository.insertNewChatMember(ids.get(FIRST_USER), ids.get(FIRST_CHAT));
+        });
     }
 
     @Test
     void getAllMembersOfTheChat_thereIsNoMembersInSpecifiedChat_throwsSQLException() {
-        assertThrows(SQLException.class, () -> chatMembersRepository.getAllMembersOfTheChat(1));
+        assertThrows(SQLException.class, () -> chatMembersRepository.getAllMembersOfTheChat(1L));
+    }
+
+    @Test
+    void getAllChatsOfTheMember_thereIsNoChatsForSpecifiedMember_throwsSQLException() {
+        assertThrows(SQLException.class, () -> chatMembersRepository.getAllChatsOfTheMember(1L));
+    }
+
+    private List<Long> givenFilledTablesReturnsListOfIDs() throws SQLException {
+        Long firstUserID = authorisationRepository.insertNewAuthorisationReturnsUserID("user1", "user1");
+        userRepository.insertNewUser(new User(firstUserID, "user1", null, LocalDate.of(1,1,1)));
+        Long secondUserID = authorisationRepository.insertNewAuthorisationReturnsUserID("user2", "user2");
+        userRepository.insertNewUser(new User(secondUserID, "user2", null, LocalDate.of(1,1,1)));
+        Long firstChatID = chatsRepository.insertNewChatReturnsChatID();
+        Long secondChatID = chatsRepository.insertNewChatReturnsChatID();
+        return new ArrayList<>(List.of(firstUserID, secondUserID, firstChatID, secondChatID));
     }
 }

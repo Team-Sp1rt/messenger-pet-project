@@ -19,7 +19,7 @@ public class ChatMembersRepository {
         this.dataSource = dataSource;
     }
 
-    public void insertNewChatMember(long chatID, long userID) throws SQLException {
+    public void insertNewChatMember(Long chatID, Long userID) throws SQLException {
         String sql = """
             INSERT INTO chat_members(chat_id, user_id)
             VALUES (?, ?)
@@ -37,7 +37,7 @@ public class ChatMembersRepository {
         }
     }
 
-    public Set<Long> getAllMembersOfTheChat(long chatID) throws SQLException {
+    public Set<Long> getAllMembersOfTheChat(Long chatID) throws SQLException {
         String sql = """
             SELECT user_id FROM chat_members
             WHERE chat_id = ?;
@@ -59,6 +59,34 @@ public class ChatMembersRepository {
                 }
 
                 return userIDsSet;
+            } finally {
+                DataSourceUtils.releaseConnection(connection, dataSource);
+            }
+        }
+    }
+
+    public Set<Long> getAllChatsOfTheMember(Long memberID) throws SQLException {
+        String sql = """
+            SELECT chat_id FROM chat_members
+            WHERE user_id = ?;
+            """;
+
+        Connection connection = DataSourceUtils.getConnection(dataSource);
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setLong(1, memberID);
+
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                Set<Long> chatIDsSet = new HashSet<>();
+
+                while (resultSet.next()) {
+                    chatIDsSet.add(resultSet.getLong("chat_id"));
+                }
+
+                if (chatIDsSet.isEmpty()) {
+                    throw new SQLException("Specified user doesn't have any chats");
+                }
+
+                return chatIDsSet;
             } finally {
                 DataSourceUtils.releaseConnection(connection, dataSource);
             }

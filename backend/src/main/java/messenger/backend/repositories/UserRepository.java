@@ -16,17 +16,18 @@ public class UserRepository {
         this.dataSource = dataSource;
     }
 
-    public void insertNewUser(long id, String username, LocalDate birthday) throws SQLException {
+    public void insertNewUser(User user) throws SQLException {
         String sql = """
-            INSERT INTO users(id, username, birthday)
-            VALUES(?, ?, ?);
+            INSERT INTO users(id, username, bio, birthday)
+            VALUES(?, ?, ?, ?);
             """;
 
         Connection connection = DataSourceUtils.getConnection(dataSource);
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            preparedStatement.setLong(1, id);
-            preparedStatement.setString(2, username);
-            preparedStatement.setObject(3, birthday);
+            preparedStatement.setLong(1, user.id());
+            preparedStatement.setString(2, user.username());
+            preparedStatement.setString(3, user.bio());
+            preparedStatement.setObject(4, user.birthday());
 
             preparedStatement.execute();
         } finally {
@@ -34,7 +35,7 @@ public class UserRepository {
         }
     }
 
-    public User getUserByID(long id) throws SQLException {
+    public User getUserByID(Long id) throws SQLException {
         String sql = """
             SELECT username, bio, birthday FROM users
             WHERE id = ?;
@@ -44,20 +45,18 @@ public class UserRepository {
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setLong(1, id);
 
-            String username = "";
-            String bio = "";
-            LocalDate birthday = LocalDate.of(1, 1, 1);
+            String username;
+            String bio;
+            LocalDate birthday;
 
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                if (resultSet.next()) {
-                    username = resultSet.getString("username");
-                    bio = resultSet.getString("bio");
-                    birthday = resultSet.getObject("birthday", LocalDate.class);
+                if (!resultSet.next()) {
+                    throw new SQLException("Couldn't get user due to unknown reason");
                 }
-            }
 
-            if (username.isEmpty() || birthday.isEqual(LocalDate.of(1, 1 ,1))) {
-                throw new SQLException("Couldn't get user due to unknown reason");
+                username = resultSet.getString("username");
+                bio = resultSet.getString("bio");
+                birthday = resultSet.getObject("birthday", LocalDate.class);
             }
 
             return new User(id, username, bio, birthday);
@@ -66,7 +65,7 @@ public class UserRepository {
         }
     }
 
-    public void changeUserBioByID(long id, String newBio) throws SQLException {
+    public void changeUserBioByID(Long id, String newBio) throws SQLException {
         String sql = """
             UPDATE users SET
             bio = ?
@@ -81,30 +80,6 @@ public class UserRepository {
             preparedStatement.execute();
         } finally {
             DataSourceUtils.releaseConnection(connection, dataSource);
-        }
-    }
-
-    @Deprecated
-    public void showEverything() throws SQLException{
-        String sql = "SELECT * FROM users";
-
-        try (Connection connection = dataSource.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                long id;
-                String username;
-                String bio;
-                LocalDate birthday;
-
-                while (resultSet.next()) {
-                    id = resultSet.getLong("id");
-                    username = resultSet.getString("username");
-                    bio = resultSet.getString("bio");
-                    birthday = resultSet.getObject("birthday", LocalDate.class);
-                    System.out.println(id + " " + username + " " + bio + " " + birthday);
-                }
-            }
         }
     }
 }

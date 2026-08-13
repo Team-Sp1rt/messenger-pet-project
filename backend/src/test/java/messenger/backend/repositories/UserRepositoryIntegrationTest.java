@@ -53,22 +53,9 @@ class UserRepositoryIntegrationTest {
         }
     }
 
-    private long givenDBWithUser(String username, LocalDate birthday) throws SQLException {
-        long id = authorisationRepository.insertNewAuthorisationReturnsUserID("meow", "meow-meow");
-        userRepository.insertNewUser(id, username, birthday);
-        return id;
-    }
-
-    private void thenUserDataShouldBeCorrect(User user, long id, String username, String bio, LocalDate birthday) {
-        assertEquals(id, user.id());
-        assertEquals(username, user.username());
-        assertEquals(bio, user.bio());
-        assertEquals(birthday, user.birthday());
-    }
-
     @Test
     void insertNewUser_thenGetUserByID_returnsCorrectData() throws SQLException {
-        long id = givenDBWithUser("meow", LocalDate.of(2000, 1, 1));
+        Long id = givenDBWithUser("meow", LocalDate.of(2000, 1, 1));
 
         User user = userRepository.getUserByID(id);
 
@@ -76,8 +63,8 @@ class UserRepositoryIntegrationTest {
     }
 
     @Test
-    void changeUserBioByID_thenGetUserByID_returnsCorrcetData() throws SQLException {
-        long id = givenDBWithUser("meow", LocalDate.of(2000, 1, 1));
+    void changeUserBioByID_thenGetUserByID_returnsCorrectData() throws SQLException {
+        Long id = givenDBWithUser("meow", LocalDate.of(2000, 1, 1));
         userRepository.changeUserBioByID(id, "meow-meow-meow");
 
         User user = userRepository.getUserByID(id);
@@ -87,6 +74,19 @@ class UserRepositoryIntegrationTest {
 
     @Test
     void getUserByIDTest_incorrectID_throwsSQLException() {
-        assertThrows(SQLException.class, () -> userRepository.getUserByID(13));
+        assertThrows(SQLException.class, () -> userRepository.getUserByID(13L));
+    }
+
+    private Long givenDBWithUser(String username, LocalDate birthday) throws SQLException {
+        Long id = authorisationRepository.insertNewAuthorisationReturnsUserID("meow", "meow-meow");
+        userRepository.insertNewUser(new User(id, username, null, birthday));
+        return id;
+    }
+
+    private void thenUserDataShouldBeCorrect(User user, Long id, String username, String bio, LocalDate birthday) {
+        assertEquals(id, user.id());
+        assertEquals(username, user.username());
+        assertEquals(bio, user.bio());
+        assertEquals(birthday, user.birthday());
     }
 }
