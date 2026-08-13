@@ -3,6 +3,7 @@ CREATE TABLE messages (
     chat_id BIGINT NOT NULL,
     user_id BIGINT NOT NULL,
     content VARCHAR(300),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (chat_id) REFERENCES chats(id)
 );

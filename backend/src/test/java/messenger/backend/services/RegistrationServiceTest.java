@@ -1,5 +1,6 @@
 package messenger.backend.services;
 
+import messenger.backend.dtos.User;
 import messenger.backend.exceptions.UserAlreadyExistsException;
 import messenger.backend.repositories.AuthorisationRepository;
 import messenger.backend.repositories.UserRepository;
@@ -36,17 +37,18 @@ class RegistrationServiceTest {
     }
 
     @Test
-    void shouldRegisterUserSuccessfully() throws SQLException {
+    void registerUser_validData_insertsUserWithReturnedId() throws SQLException {
         when(authorisationRepository.insertNewAuthorisationReturnsUserID(eq("newuser"), anyString()))
                 .thenReturn(42L);
 
         registrationService.registerUser("newuser", "password123", "New User", LocalDate.of(2000, 1, 1));
 
-        verify(userRepository).insertNewUser(42L, "New User", LocalDate.of(2000, 1, 1));
+        User user = new User(42L, "New User", "", LocalDate.of(2000, 1, 1));
+        verify(userRepository).insertNewUser(user);
     }
 
     @Test
-    void shouldHashPasswordBeforeInserting() throws SQLException {
+    void registerUser_validPassword_storesHashedPasswordNotRawPassword() throws SQLException {
         when(authorisationRepository.insertNewAuthorisationReturnsUserID(anyString(), anyString()))
                 .thenReturn(1L);
 
@@ -58,7 +60,7 @@ class RegistrationServiceTest {
     }
 
     @Test
-    void shouldThrowUserAlreadyExistsWhenLoginDuplicated() throws SQLException {
+    void registerUser_duplicateLogin_throwsUserAlreadyExistsException() throws SQLException {
         SQLException duplicateKeyException = new SQLException("duplicate key value violates unique constraint", "23505");
 
         when(authorisationRepository.insertNewAuthorisationReturnsUserID(anyString(), anyString()))
@@ -70,7 +72,7 @@ class RegistrationServiceTest {
     }
 
     @Test
-    void shouldThrowRuntimeExceptionForOtherSqlErrors() throws SQLException {
+    void registerUser_unexpectedSqlError_throwsRuntimeException() throws SQLException {
         SQLException connectionException = new SQLException("connection refused", "08001");
 
         when(authorisationRepository.insertNewAuthorisationReturnsUserID(anyString(), anyString()))

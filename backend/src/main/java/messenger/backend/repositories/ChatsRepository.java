@@ -1,5 +1,6 @@
 package messenger.backend.repositories;
 
+import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
@@ -16,24 +17,27 @@ public class ChatsRepository {
         this.dataSource = dataSource;
     }
 
-    public void showEverything() throws SQLException {
-        Connection connection = dataSource.getConnection();
+    public Long insertNewChatReturnsChatID() throws SQLException {
+        String sql = """
+            INSERT INTO chats
+            DEFAULT VALUES
+            RETURNING id;
+            """;
 
-        String sql = "SELECT * FROM chats";
+        Connection connection = DataSourceUtils.getConnection(dataSource);
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql);
+             ResultSet resultSet = preparedStatement.executeQuery()) {
+            long id;
 
-        PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            if(!resultSet.next()) {
+                throw new SQLException("Couldn't insert new chat due to unknown reason");
+            }
 
-        ResultSet resultSet = preparedStatement.executeQuery();
-
-        long id;
-
-        while(resultSet.next()) {
             id = resultSet.getLong("id");
-            System.out.println(id);
-        }
 
-        resultSet.close();
-        preparedStatement.close();
-        connection.close();
+            return id;
+        } finally {
+            DataSourceUtils.releaseConnection(connection, dataSource);
+        }
     }
 }

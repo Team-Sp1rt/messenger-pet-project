@@ -35,7 +35,7 @@ class AuthorisationServiceTest {
     }
 
     @Test
-    void shouldAuthoriseWithCorrectPassword() throws SQLException {
+    void getUserByLoginAndPassword_correctPassword_returnsUser() throws SQLException {
         String rawPassword = "password123";
         String hash = passwordEncoder.encode(rawPassword);
 
@@ -49,7 +49,7 @@ class AuthorisationServiceTest {
     }
 
     @Test
-    void shouldRejectWrongPassword() throws SQLException {
+    void getUserByLoginAndPassword_wrongPassword_throwsInvalidCredentialsException() throws SQLException {
         String hash = passwordEncoder.encode("correctPassword");
 
         when(authorisationRepository.getUserIDByLogin("testuser")).thenReturn(1L);
@@ -61,7 +61,7 @@ class AuthorisationServiceTest {
     }
 
     @Test
-    void shouldRejectNonExistentLogin() throws SQLException {
+    void getUserByLoginAndPassword_nonExistentLogin_throwsInvalidCredentialsException() throws SQLException {
         when(authorisationRepository.getUserIDByLogin("ghost"))
                 .thenThrow(new SQLException("Couldn't get user id due to unknown reason"));
 
