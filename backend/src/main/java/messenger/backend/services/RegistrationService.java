@@ -1,5 +1,6 @@
 package messenger.backend.services;
 
+import messenger.backend.dtos.User;
 import messenger.backend.exceptions.UserAlreadyExistsException;
 import messenger.backend.repositories.AuthorisationRepository;
 import messenger.backend.repositories.UserRepository;
@@ -30,7 +31,8 @@ public class RegistrationService {
 
         try {
             long id = authorisationRepository.insertNewAuthorisationReturnsUserID(login, passwordHash);
-            userRepository.insertNewUser(id, username, birthday);
+            User user = new User(id, username, "", birthday);
+            userRepository.insertNewUser(user);
         } catch (SQLException e) {
             if ("23505".equals(e.getSQLState())) {
                 throw new UserAlreadyExistsException("A user with this username already exists");
