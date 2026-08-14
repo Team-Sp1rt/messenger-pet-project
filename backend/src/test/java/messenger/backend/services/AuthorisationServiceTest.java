@@ -14,8 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.sql.SQLException;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -38,14 +37,15 @@ class AuthorisationServiceTest {
     void getUserByLoginAndPassword_correctPassword_returnsUser() throws SQLException {
         String rawPassword = "password123";
         String hash = passwordEncoder.encode(rawPassword);
+        User newUser = new User(1L, "Test", "", null);
 
         when(authorisationRepository.getUserIDByLogin("testuser")).thenReturn(1L);
         when(authorisationRepository.getPasswordHashByLogin("testuser")).thenReturn(hash);
-        when(userRepository.getUserByID(1L)).thenReturn(new User(1L, "Test", "", null));
+        when(userRepository.getUserByID(1L)).thenReturn(newUser);
 
         User result = authorisationService.getUserByLoginAndPassword("testuser", rawPassword);
 
-        assertNotNull(result);
+        assertEquals(newUser, result);
     }
 
     @Test
