@@ -9,6 +9,7 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
+
   backend:
     build:
       context: ./backend
@@ -17,6 +18,10 @@ services:
     ports:
       - "8080:8080"
     restart: unless-stopped
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+
   postgres:
     image: postgres:16
     container_name: messenger-postgres
