@@ -1,18 +1,14 @@
-import {useEffect, useState} from "react";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import AuthPage from "./features/auth/pages/AuthPage";
 
 function App() {
-    const [helloWorld, setHelloWorld] = useState(':(');
-
-    useEffect(() => {
-        fetch('http://localhost:8080/api/hello')
-            .then(res => res.text())
-            .then(data => setHelloWorld(data))
-    }, [])
-
     return (
-        <div>
-            <p>{helloWorld}</p>
-        </div>
+        <BrowserRouter>
+            <Routes>
+                <Route path="/auth" element={<AuthPage />}/>
+                <Route path="/" element={<Navigate to="/auth" />} />
+            </Routes>
+        </BrowserRouter>
     )
 }
 

@@ -1,0 +1,63 @@
+.outerContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: var(--bg-page);
+}
+
+.card {
+    position: relative;
+    overflow: hidden;
+    width: 900px;
+    min-height: 480px;
+    border-radius: 16px;
+    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.4);
+    background: var(--bg-card);
+}
+
+.formWrapper {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    width: 60%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.6s ease-in-out;
+}
+
+.signInWrapper {
+    left: 0;
+    z-index: 2;
+}
+
+.signUpWrapper {
+    left: 0;
+    z-index: 1;
+}
+
+.card.signUpMode .signInWrapper {
+    transform: translateX(66.67%);
+    z-index: 1;
+}
+
+.card.signUpMode .signUpWrapper {
+    transform: translateX(66.67%);
+    z-index: 2;
+}
+
+.overlayContainer {
+    position: absolute;
+    top: 0;
+    left: 60%;
+    width: 40%;
+    height: 100%;
+    overflow: hidden;
+    transition: transform 0.6s ease-in-out;
+    z-index: 100;
+}
+
+.card.signUpMode .overlayContainer {
+    transform: translateX(-150%);
+}
