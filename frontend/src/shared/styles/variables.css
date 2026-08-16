@@ -1,0 +1,14 @@
+@font-face {
+    font-family: 'Monteserrat';
+    src: url(../../assets/fonts/Monteserrat.ttf);
+}
+
+:root {
+    --bg-page: #161616;
+    --bg-card: #212121;
+    --bg-input: #2c2c2c;
+    --text-primary: #e8e8e8;
+    --text-secondary: #9e9e9e;
+    --accent: #1e7d6f;
+    --accent-hover: #24968a;
+}
