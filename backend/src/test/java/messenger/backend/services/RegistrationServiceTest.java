@@ -41,7 +41,7 @@ class RegistrationServiceTest {
         when(authorisationRepository.insertNewAuthorisationReturnsUserID(eq("newuser"), anyString()))
                 .thenReturn(42L);
 
-        registrationService.registerUser("newuser", "password123", "New User", LocalDate.of(2000, 1, 1));
+        registrationService.registerUser("New User", "newuser", "password123", LocalDate.of(2000, 1, 1));
 
         User user = new User(42L, "New User", "", LocalDate.of(2000, 1, 1));
         verify(userRepository).insertNewUser(user);
@@ -52,7 +52,7 @@ class RegistrationServiceTest {
         when(authorisationRepository.insertNewAuthorisationReturnsUserID(anyString(), anyString()))
                 .thenReturn(1L);
 
-        registrationService.registerUser("newuser", "password123", "New User", LocalDate.of(2000, 1, 1));
+        registrationService.registerUser("New User", "newuser", "password123", LocalDate.of(2000, 1, 1));
 
         verify(authorisationRepository).insertNewAuthorisationReturnsUserID(eq("newuser"), argThat(hash ->
                 !hash.equals("password123") && hash.startsWith("$2a$")
@@ -67,7 +67,7 @@ class RegistrationServiceTest {
                 .thenThrow(duplicateKeyException);
 
         assertThrows(UserAlreadyExistsException.class, () ->
-                registrationService.registerUser("existinguser", "password123", "Someone", LocalDate.of(2000, 1, 1))
+                registrationService.registerUser("Someone", "existinguser", "password123", LocalDate.of(2000, 1, 1))
         );
     }
 
@@ -79,7 +79,7 @@ class RegistrationServiceTest {
                 .thenThrow(connectionException);
 
         assertThrows(RuntimeException.class, () ->
-                registrationService.registerUser("someuser", "password123", "Someone", LocalDate.of(2000, 1, 1))
+                registrationService.registerUser("Someone", "someuser", "password123", LocalDate.of(2000, 1, 1))
         );
     }
 }

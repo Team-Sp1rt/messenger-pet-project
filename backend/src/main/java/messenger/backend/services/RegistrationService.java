@@ -26,7 +26,7 @@ public class RegistrationService {
     }
 
     @Transactional
-    public void registerUser(String login, String password, String username, LocalDate birthday) {
+    public void registerUser(String username, String login, String password, LocalDate birthday) {
         String passwordHash = passwordEncoder.encode(password);
 
         try {
