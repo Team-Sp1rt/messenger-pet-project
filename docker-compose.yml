@@ -21,6 +21,7 @@ services:
     environment:
       DB_HOST: postgres
       DB_PORT: 5432
+      JWT_SECRET: ${JWT_SECRET}
 
   postgres:
     image: postgres:16

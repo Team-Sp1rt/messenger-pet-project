@@ -1,6 +1,7 @@
 package messenger.backend.services;
 
 import messenger.backend.dtos.User;
+import messenger.backend.dtos.responses.AuthResponse;
 import messenger.backend.exceptions.UserAlreadyExistsException;
 import messenger.backend.repositories.AuthorisationRepository;
 import messenger.backend.repositories.UserRepository;
@@ -11,6 +12,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.JwtEncoder;
 
 import java.sql.SQLException;
 import java.time.LocalDate;
@@ -28,18 +30,29 @@ class RegistrationServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private JwtService jwtService;
+
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     private RegistrationService registrationService;
 
     @BeforeEach
     void setUp() {
-        registrationService = new RegistrationService(authorisationRepository, userRepository, passwordEncoder);
+        registrationService = new RegistrationService(
+                authorisationRepository,
+                userRepository,
+                passwordEncoder,
+                jwtService
+        );
     }
 
     @Test
     void registerUser_validData_insertsUserWithReturnedId() throws SQLException {
         when(authorisationRepository.insertNewAuthorisationReturnsUserID(eq("newuser"), anyString()))
                 .thenReturn(42L);
+
+        when(jwtService.generateAccessToken(42L, "New User"))
+                .thenReturn("test-token");
 
         registrationService.registerUser("New User", "newuser", "password123", LocalDate.of(2000, 1, 1));
 
@@ -51,6 +64,9 @@ class RegistrationServiceTest {
     void registerUser_validPassword_storesHashedPasswordNotRawPassword() throws SQLException {
         when(authorisationRepository.insertNewAuthorisationReturnsUserID(anyString(), anyString()))
                 .thenReturn(1L);
+
+        when(jwtService.generateAccessToken(1L, "New User"))
+                .thenReturn("test-token");
 
         registrationService.registerUser("New User", "newuser", "password123", LocalDate.of(2000, 1, 1));
 

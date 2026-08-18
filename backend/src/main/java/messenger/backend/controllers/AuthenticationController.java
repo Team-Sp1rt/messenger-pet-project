@@ -1,31 +1,29 @@
 package messenger.backend.controllers;
 
-import messenger.backend.dtos.requests.RegisterRequest;
+import messenger.backend.dtos.requests.RegistrationRequest;
+import messenger.backend.dtos.responses.AuthResponse;
 import messenger.backend.services.RegistrationService;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 
 @RestController
-@CrossOrigin(origins = "*")
 @RequestMapping("/api/auth")
-public class AuthController {
+public class AuthenticationController {
     private final RegistrationService registrationService;
 
-    public AuthController(RegistrationService registrationService) {
+    public AuthenticationController(RegistrationService registrationService) {
         this.registrationService = registrationService;
     }
 
     @PostMapping("/register")
-    public String sayHello(@RequestBody RegisterRequest registerRequest) {
-        registrationService.registerUser(
+    public AuthResponse sayHello(@RequestBody RegistrationRequest registerRequest) {
+        return registrationService.registerUser(
                 registerRequest.username(),
                 registerRequest.login(),
                 registerRequest.password(),
                 LocalDate.of(2000, 1, 1)
         );
-
-        return "Welcome to Messenger";
     }
 
 }
