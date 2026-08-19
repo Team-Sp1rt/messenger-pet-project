@@ -1,0 +1,348 @@
+openapi: 3.1.0
+
+info:
+  title: Messenger API
+  version: 0.1.0
+  description: |
+    HTTP API мессенджера.
+
+    Поддерживаются только личные чаты между двумя
+    пользователями.
+
+    HTTP API используется для поиска
+    пользователей, работы с чатами и загрузки истории сообщений.
+
+servers:
+  - url: http://localhost:8080
+    description: Локальный backend
+
+tags:
+  - name: Users
+    description: Поиск пользователей
+  - name: Chats
+    description: Личные чаты и история сообщений
+
+security:
+  - bearerAuth: []
+
+paths:
+  /api/users/search:
+    get:
+      tags:
+        - Users
+      summary: Найти пользователей по имени
+      description: |
+        Используется при создании нового чата. Возвращает только имя и id пользователя
+      operationId: searchUsers
+      parameters:
+        - name: username
+          in: query
+          required: true
+          description: Часть имени пользователя
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 50
+          example: alex
+        - name: limit
+          in: query
+          required: false
+          description: Максимальное количество результатов
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 20
+      responses:
+        '200':
+          description: Найденные пользователи
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserSearchResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/chats:
+    get:
+      tags:
+        - Chats
+      summary: Получить чаты текущего пользователя
+      operationId: getChats
+      responses:
+        '200':
+          description: Список чатов
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      tags:
+        - Chats
+      summary: Создать чат
+      description: |
+        Создаёт личный чат между текущим пользователем и указанным собеседником.
+        Текущий пользователь определяется по JWT и добавляется автоматически.
+      operationId: createChat
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateChatRequest'
+      responses:
+        '201':
+          description: Чат создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Chat'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Указанный пользователь не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/chats/{chatId}/messages:
+    get:
+      tags:
+        - Chats
+      summary: Получить историю сообщений
+      description: |
+        Без параметра `beforeMessageId` возвращает последние сообщения чата.
+        Для подгрузки более старых сообщений клиент передаёт
+        `nextBeforeMessageId` из предыдущего ответа.
+      operationId: getChatMessages
+      parameters:
+        - $ref: '#/components/parameters/ChatId'
+        - name: beforeMessageId
+          in: query
+          required: false
+          description: ID сообщения, перед которым нужно загрузить историю
+          schema:
+            $ref: '#/components/schemas/Id'
+          example: '781'
+        - name: limit
+          in: query
+          required: false
+          description: Максимальное количество сообщений
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+      responses:
+        '200':
+          description: Страница сообщений от новых к старым
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessagePage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          description: Чат не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT для доступа к защищённым HTTP-ручкам
+
+  parameters:
+    ChatId:
+      name: chatId
+      in: path
+      required: true
+      description: Идентификатор чата
+      schema:
+        $ref: '#/components/schemas/Id'
+
+  responses:
+    BadRequest:
+      description: Запрос не прошёл валидацию
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: VALIDATION_ERROR
+            message: Request validation failed
+
+    Unauthorized:
+      description: JWT отсутствует, недействителен или истёк
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: UNAUTHORIZED
+            message: Authentication is required
+
+    Forbidden:
+      description: Пользователь не является участником чата
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: CHAT_ACCESS_DENIED
+            message: You are not a member of this chat
+
+  schemas:
+    Id:
+      type: string
+      pattern: '^\d+$'
+      example: '42'
+
+    UserSummary:
+      type: object
+      required:
+        - id
+        - username
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        username:
+          type: string
+          example: alex
+
+    UserSearchResponse:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserSummary'
+
+    CreateChatRequest:
+      type: object
+      required:
+        - memberId
+      properties:
+        memberId:
+          description: ID собеседника
+          $ref: '#/components/schemas/Id'
+
+    Chat:
+      type: object
+      required:
+        - id
+        - members
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        members:
+          type: array
+          minItems: 2
+          maxItems: 2
+          description: Текущий пользователь и его собеседник
+          items:
+            $ref: '#/components/schemas/UserSummary'
+
+    ChatSummary:
+      type: object
+      required:
+        - id
+        - members
+        - lastMessage
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        members:
+          type: array
+          minItems: 2
+          maxItems: 2
+          description: Текущий пользователь и его собеседник
+          items:
+            $ref: '#/components/schemas/UserSummary'
+        lastMessage:
+          oneOf:
+            - $ref: '#/components/schemas/Message'
+            - type: 'null'
+
+    ChatListResponse:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChatSummary'
+
+    Message:
+      type: object
+      required:
+        - id
+        - chatId
+        - userId
+        - content
+        - createdAt
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        chatId:
+          $ref: '#/components/schemas/Id'
+        userId:
+          $ref: '#/components/schemas/Id'
+        content:
+          type: string
+          minLength: 1
+          maxLength: 300
+          example: Привет
+        createdAt:
+          type: string
+          format: date-time
+          example: '2026-08-19T12:30:45Z'
+
+    MessagePage:
+      type: object
+      required:
+        - items
+        - nextBeforeMessageId
+      properties:
+        items:
+          type: array
+          description: Сообщения от новых к старым
+          items:
+            $ref: '#/components/schemas/Message'
+        nextBeforeMessageId:
+          oneOf:
+            - $ref: '#/components/schemas/Id'
+            - type: 'null'
+          description: ID для следующей страницы или null, если сообщений больше нет
+          example: '730'
+
+    ErrorResponse:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+        message:
+          type: string
