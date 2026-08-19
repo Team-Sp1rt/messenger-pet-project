@@ -1,6 +1,7 @@
 package messenger.backend.services;
 
 import messenger.backend.dtos.User;
+import messenger.backend.dtos.requests.AuthorisationRequest;
 import messenger.backend.dtos.responses.AuthResponse;
 import messenger.backend.exceptions.InvalidCredentialsException;
 import messenger.backend.repositories.AuthorisationRepository;
@@ -47,7 +48,7 @@ class AuthorisationServiceTest {
         when(authorisationRepository.getPasswordHashByLogin("testuser")).thenReturn(hash);
         when(userRepository.getUserByID(1L)).thenReturn(newUser);
 
-        AuthResponse result = authorisationService.getUserByLoginAndPassword("testuser", rawPassword);
+        AuthResponse result = authorisationService.getUserByLoginAndPassword(new AuthorisationRequest("testuser", rawPassword));
 
         assertEquals(newUser, result.user());
     }
@@ -60,7 +61,7 @@ class AuthorisationServiceTest {
         when(authorisationRepository.getPasswordHashByLogin("testuser")).thenReturn(hash);
 
         assertThrows(InvalidCredentialsException.class, () ->
-                authorisationService.getUserByLoginAndPassword("testuser", "wrongPassword")
+                authorisationService.getUserByLoginAndPassword(new AuthorisationRequest("testuser", "wrongPassword"))
         );
     }
 
@@ -70,7 +71,7 @@ class AuthorisationServiceTest {
                 .thenThrow(new SQLException("Couldn't get user id due to unknown reason"));
 
         assertThrows(InvalidCredentialsException.class, () ->
-                authorisationService.getUserByLoginAndPassword("ghost", "anyPassword")
+                authorisationService.getUserByLoginAndPassword(new AuthorisationRequest("ghost", "anyPassword"))
         );
     }
 }

@@ -21,20 +21,12 @@ public class AuthenticationController {
     }
 
     @PostMapping("/register")
-    public AuthResponse sayHello(@RequestBody RegistrationRequest registerRequest) {
-        return registrationService.registerUser(
-                registerRequest.username(),
-                registerRequest.login(),
-                registerRequest.password(),
-                registerRequest.birthday()
-        );
+    public AuthResponse postRegisterUser(@RequestBody RegistrationRequest registerRequest) {
+        return registrationService.registerUser(registerRequest);
     }
 
     @PostMapping("/login")
-    public AuthResponse sayHello(@RequestBody AuthorisationRequest registerRequest) {
-        return authorisationService.getUserByLoginAndPassword(
-                registerRequest.login(),
-                registerRequest.password()
-        );
+    public AuthResponse postLoginUser(@RequestBody AuthorisationRequest authorisationRequest) {
+        return authorisationService.getUserByLoginAndPassword(authorisationRequest);
     }
 }

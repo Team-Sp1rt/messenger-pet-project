@@ -1,6 +1,7 @@
 package messenger.backend.services;
 
 import messenger.backend.dtos.User;
+import messenger.backend.dtos.requests.RegistrationRequest;
 import messenger.backend.dtos.responses.AuthResponse;
 import messenger.backend.exceptions.UserAlreadyExistsException;
 import messenger.backend.repositories.AuthorisationRepository;
@@ -31,15 +32,15 @@ public class RegistrationService {
     }
 
     @Transactional
-    public AuthResponse registerUser(String username, String login, String password, LocalDate birthday) {
-        String passwordHash = passwordEncoder.encode(password);
+    public AuthResponse registerUser(RegistrationRequest registerRequest) {
+        String passwordHash = passwordEncoder.encode(registerRequest.password());
 
         try {
-            Long id = authorisationRepository.insertNewAuthorisationReturnsUserID(login, passwordHash);
-            User user = new User(id, username, "", birthday);
+            Long id = authorisationRepository.insertNewAuthorisationReturnsUserID(registerRequest.login(), passwordHash);
+            User user = new User(id, registerRequest.username(), "", registerRequest.birthday());
             userRepository.insertNewUser(user);
 
-            String token = jwtService.generateAccessToken(id, username);
+            String token = jwtService.generateAccessToken(id, registerRequest.username());
 
             return new AuthResponse(token, user);
         } catch (SQLException e) {

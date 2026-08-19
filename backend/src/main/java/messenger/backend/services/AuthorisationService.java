@@ -1,6 +1,7 @@
 package messenger.backend.services;
 
 import messenger.backend.dtos.User;
+import messenger.backend.dtos.requests.AuthorisationRequest;
 import messenger.backend.dtos.responses.AuthResponse;
 import messenger.backend.exceptions.InvalidCredentialsException;
 import messenger.backend.repositories.AuthorisationRepository;
@@ -28,12 +29,12 @@ public class AuthorisationService {
         this.jwtService = jwtService;
     }
 
-    public AuthResponse getUserByLoginAndPassword(String login, String password) {
+    public AuthResponse getUserByLoginAndPassword(AuthorisationRequest authorisationRequest) {
         try {
-            long userID = authorisationRepository.getUserIDByLogin(login);
-            String passwordHash = authorisationRepository.getPasswordHashByLogin(login);
+            long userID = authorisationRepository.getUserIDByLogin(authorisationRequest.login());
+            String passwordHash = authorisationRepository.getPasswordHashByLogin(authorisationRequest.login());
 
-            if (!passwordEncoder.matches(password, passwordHash)) {
+            if (!passwordEncoder.matches(authorisationRequest.password(), passwordHash)) {
                 throw new InvalidCredentialsException("Invalid username or password");
             }
 
