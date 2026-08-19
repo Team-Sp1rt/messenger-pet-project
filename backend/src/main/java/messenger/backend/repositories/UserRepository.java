@@ -1,5 +1,6 @@
 package messenger.backend.repositories;
 
+import messenger.backend.dtos.Message;
 import messenger.backend.dtos.User;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Repository;
@@ -7,6 +8,8 @@ import org.springframework.stereotype.Repository;
 import javax.sql.DataSource;
 import java.sql.*;
 import java.time.LocalDate;
+import java.util.LinkedList;
+import java.util.List;
 
 @Repository
 public class UserRepository {
@@ -45,21 +48,39 @@ public class UserRepository {
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setLong(1, id);
 
-            String username;
-            String bio;
-            LocalDate birthday;
-
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 if (!resultSet.next()) {
                     throw new SQLException("Couldn't get user due to unknown reason");
                 }
 
-                username = resultSet.getString("username");
-                bio = resultSet.getString("bio");
-                birthday = resultSet.getObject("birthday", LocalDate.class);
+                return mapRowToUser(resultSet);
             }
+        } finally {
+            DataSourceUtils.releaseConnection(connection, dataSource);
+        }
+    }
 
-            return new User(id, username, bio, birthday);
+    public List<User> getNUsersStartingWithSubstring(String substring, Integer n) throws SQLException {
+        String sql = """
+            SELECT * FROM users
+            WHERE username ILIKE ?
+            LIMIT ?;
+            """;
+
+        Connection connection = DataSourceUtils.getConnection(dataSource);
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setString(1, substring + '%');
+            preparedStatement.setInt(2, n);
+
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                List<User> foundUsers = mapResultSetToUsersList(resultSet);
+
+                if (foundUsers.isEmpty()) {
+                    throw new SQLException("Couldn't find any users with username like provided");
+                }
+
+                return foundUsers;
+            }
         } finally {
             DataSourceUtils.releaseConnection(connection, dataSource);
         }
@@ -81,5 +102,24 @@ public class UserRepository {
         } finally {
             DataSourceUtils.releaseConnection(connection, dataSource);
         }
+    }
+
+    private User mapRowToUser(ResultSet resultSet) throws SQLException {
+        return new User(
+                resultSet.getLong("id"),
+                resultSet.getString("username"),
+                resultSet.getString("bio"),
+                resultSet.getObject("birthday", LocalDate.class)
+        );
+    }
+
+    private List<User> mapResultSetToUsersList(ResultSet resultSet) throws SQLException {
+        List<User> usersList = new LinkedList<>();
+
+        while (resultSet.next()) {
+            usersList.add(mapRowToUser(resultSet));
+        }
+
+        return usersList;
     }
 }
