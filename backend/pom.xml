@@ -137,6 +137,9 @@
                                 <useJackson3>true</useJackson3>
                                 <useTags>true</useTags>
                                 <useBeanValidation>true</useBeanValidation>
+                                <documentationProvider>none</documentationProvider>
+                                <annotationLibrary>none</annotationLibrary>
+                                <useSwaggerUI>false</useSwaggerUI>
                             </configOptions>
 
                             <generateApiTests>false</generateApiTests>
