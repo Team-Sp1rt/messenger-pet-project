@@ -94,8 +94,15 @@
         </dependency>
 
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+            <groupId>org.openapitools</groupId>
+            <artifactId>jackson-databind-nullable</artifactId>
+            <version>0.2.7</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>3.0.0</version>
         </dependency>
     </dependencies>
 
@@ -112,13 +119,14 @@
 
                 <executions>
                     <execution>
+                        <phase>generate-sources</phase>
                         <goals>
                             <goal>generate</goal>
                         </goals>
 
                         <configuration>
                             <inputSpec>
-                                ${project.basedir}/../docs/openapi.yaml
+                                ${project.basedir}/docs/openapi.yaml
                             </inputSpec>
 
                             <generatorName>spring</generatorName>
