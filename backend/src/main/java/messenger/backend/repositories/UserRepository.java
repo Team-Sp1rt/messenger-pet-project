@@ -114,16 +114,6 @@ public class UserRepository {
         );
     }
 
-    private List<User> mapResultSetToUsersList(ResultSet resultSet) throws SQLException {
-        List<User> usersList = new LinkedList<>();
-
-        while (resultSet.next()) {
-            usersList.add(mapRowToUser(resultSet));
-        }
-
-        return usersList;
-    }
-
     private UserSummary mapRowToUserSummary(ResultSet resultSet) throws SQLException {
         return new UserSummary(
                 Long.toString(resultSet.getLong("id")),

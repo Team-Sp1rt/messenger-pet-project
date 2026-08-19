@@ -15,11 +15,6 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
-    // username - ищем именно как вхождение подстроки
-    // limit - максимально кол-во результатов, которое хотим вернуть
-    // проверка адекватности значения limit уже прописана в генерации
-
-    // p.s скорее всего тебе потребуется использовать готовое dto UserSummary
     public UserSearchResponse searchUsers(String username, Integer limit) {
         try {
             return new UserSearchResponse(userRepository.getNUserSummariesStartingWithSubstring(username, limit));

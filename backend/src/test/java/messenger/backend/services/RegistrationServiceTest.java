@@ -2,6 +2,7 @@ package messenger.backend.services;
 
 import messenger.backend.dtos.User;
 import messenger.backend.dtos.requests.RegistrationRequest;
+import messenger.backend.exceptions.services.DatabaseException;
 import messenger.backend.exceptions.services.auth.UserAlreadyExistsException;
 import messenger.backend.repositories.AuthorisationRepository;
 import messenger.backend.repositories.UserRepository;
@@ -110,7 +111,7 @@ class RegistrationServiceTest {
     }
 
     @Test
-    void registerUser_unexpectedSqlError_throwsRuntimeException() throws SQLException {
+    void registerUser_unexpectedSqlError_throwsDatabaseException() throws SQLException {
         SQLException connectionException = new SQLException("connection refused", "08001");
 
         RegistrationRequest registerRequest = new RegistrationRequest(
@@ -123,7 +124,7 @@ class RegistrationServiceTest {
         when(authorisationRepository.insertNewAuthorisationReturnsUserID(anyString(), anyString()))
                 .thenThrow(connectionException);
 
-        assertThrows(RuntimeException.class, () ->
+        assertThrows(DatabaseException.class, () ->
                 registrationService.registerUser(registerRequest)
         );
     }
