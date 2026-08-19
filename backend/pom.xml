@@ -100,8 +100,6 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
-<<<<<<< Updated upstream
-=======
             <plugin>
                 <groupId>org.openapitools</groupId>
                 <artifactId>openapi-generator-maven-plugin</artifactId>
@@ -147,7 +145,6 @@
                     </execution>
                 </executions>
             </plugin>
->>>>>>> Stashed changes
         </plugins>
     </build>
 
