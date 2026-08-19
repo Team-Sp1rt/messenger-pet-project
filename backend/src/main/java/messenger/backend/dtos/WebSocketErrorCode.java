@@ -1,0 +1,10 @@
+package messenger.backend.dtos;
+
+public enum WebSocketErrorCode {
+    UNAUTHORIZED,
+    CHAT_NOT_FOUND,
+    CHAT_ACCESS_DENIED,
+    MESSAGE_NOT_FOUND,
+    MESSAGE_ACCESS_DENIED,
+    MESSAGE_INVALID_CONTENT
+}
