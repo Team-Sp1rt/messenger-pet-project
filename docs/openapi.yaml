@@ -35,7 +35,7 @@ paths:
         Используется при создании нового чата. Возвращает только имя и id пользователя
       operationId: searchUsers
       parameters:
-        - name: query
+        - name: username
           in: query
           required: true
           description: Часть имени пользователя
