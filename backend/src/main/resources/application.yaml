@@ -7,4 +7,4 @@ spring:
     password: ${DB_PASSWORD:messenger}
 
 jwt:
-  secret: ${JWT_SECRET}
+  secret: ${JWT_SECRET:S0gGkYhpg1yyIavEO/lk6xbjnEL7IJ1uVHtwQG8BqAw=}

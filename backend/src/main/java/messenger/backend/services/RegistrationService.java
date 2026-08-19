@@ -2,7 +2,6 @@ package messenger.backend.services;
 
 import messenger.backend.dtos.User;
 import messenger.backend.dtos.responses.AuthResponse;
-import messenger.backend.dtos.responses.UserResponse;
 import messenger.backend.exceptions.UserAlreadyExistsException;
 import messenger.backend.repositories.AuthorisationRepository;
 import messenger.backend.repositories.UserRepository;
@@ -19,16 +18,16 @@ public class RegistrationService {
     private final UserRepository userRepository;
 
     private final PasswordEncoder passwordEncoder;
-    private final JwtService JwtService;
+    private final JwtService jwtService;
 
     public RegistrationService(AuthorisationRepository authorisationRepository,
                                UserRepository userRepository,
                                PasswordEncoder passwordEncoder,
-                               JwtService JwtService) {
+                               JwtService jwtService) {
         this.authorisationRepository = authorisationRepository;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
-        this.JwtService = JwtService;
+        this.jwtService = jwtService;
     }
 
     @Transactional
@@ -40,12 +39,9 @@ public class RegistrationService {
             User user = new User(id, username, "", birthday);
             userRepository.insertNewUser(user);
 
-            String token = JwtService.generateAccessToken(id, username);
+            String token = jwtService.generateAccessToken(id, username);
 
-            return new AuthResponse(
-                    token,
-                    new UserResponse(String.valueOf(user.id()), user.username())
-            );
+            return new AuthResponse(token, user);
         } catch (SQLException e) {
             if ("23505".equals(e.getSQLState())) {
                 throw new UserAlreadyExistsException("A user with this username already exists");

@@ -1,4 +1,6 @@
 package messenger.backend.dtos.requests;
 
-public record RegistrationRequest(String username, String login, String password) {
+import java.time.LocalDate;
+
+public record RegistrationRequest(String username, String login, String password, LocalDate birthday) {
 }
