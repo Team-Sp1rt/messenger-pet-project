@@ -1,6 +1,8 @@
 package messenger.backend.services;
 
 import messenger.backend.dtos.User;
+import messenger.backend.dtos.requests.RegistrationRequest;
+import messenger.backend.dtos.responses.AuthResponse;
 import messenger.backend.exceptions.UserAlreadyExistsException;
 import messenger.backend.repositories.AuthorisationRepository;
 import messenger.backend.repositories.UserRepository;
@@ -15,24 +17,32 @@ import java.time.LocalDate;
 public class RegistrationService {
     private final AuthorisationRepository authorisationRepository;
     private final UserRepository userRepository;
+
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
     public RegistrationService(AuthorisationRepository authorisationRepository,
                                UserRepository userRepository,
-                               PasswordEncoder passwordEncoder) {
+                               PasswordEncoder passwordEncoder,
+                               JwtService jwtService) {
         this.authorisationRepository = authorisationRepository;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
     }
 
     @Transactional
-    public void registerUser(String login, String password, String username, LocalDate birthday) {
-        String passwordHash = passwordEncoder.encode(password);
+    public AuthResponse registerUser(RegistrationRequest registerRequest) {
+        String passwordHash = passwordEncoder.encode(registerRequest.password());
 
         try {
-            long id = authorisationRepository.insertNewAuthorisationReturnsUserID(login, passwordHash);
-            User user = new User(id, username, "", birthday);
+            Long id = authorisationRepository.insertNewAuthorisationReturnsUserID(registerRequest.login(), passwordHash);
+            User user = new User(id, registerRequest.username(), "", registerRequest.birthday());
             userRepository.insertNewUser(user);
+
+            String token = jwtService.generateAccessToken(id, registerRequest.username());
+
+            return new AuthResponse(token, user);
         } catch (SQLException e) {
             if ("23505".equals(e.getSQLState())) {
                 throw new UserAlreadyExistsException("A user with this username already exists");

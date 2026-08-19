@@ -1,6 +1,8 @@
 package messenger.backend.services;
 
 import messenger.backend.dtos.User;
+import messenger.backend.dtos.requests.AuthorisationRequest;
+import messenger.backend.dtos.responses.AuthResponse;
 import messenger.backend.exceptions.InvalidCredentialsException;
 import messenger.backend.repositories.AuthorisationRepository;
 import messenger.backend.repositories.UserRepository;
@@ -25,12 +27,15 @@ class AuthorisationServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private JwtService jwtService;
+
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     private AuthorisationService authorisationService;
 
     @BeforeEach
     void setUp() {
-        authorisationService = new AuthorisationService(authorisationRepository, userRepository, passwordEncoder);
+        authorisationService = new AuthorisationService(authorisationRepository, userRepository, passwordEncoder, jwtService);
     }
 
     @Test
@@ -43,9 +48,9 @@ class AuthorisationServiceTest {
         when(authorisationRepository.getPasswordHashByLogin("testuser")).thenReturn(hash);
         when(userRepository.getUserByID(1L)).thenReturn(newUser);
 
-        User result = authorisationService.getUserByLoginAndPassword("testuser", rawPassword);
+        AuthResponse result = authorisationService.getUserByLoginAndPassword(new AuthorisationRequest("testuser", rawPassword));
 
-        assertEquals(newUser, result);
+        assertEquals(newUser, result.user());
     }
 
     @Test
@@ -56,7 +61,7 @@ class AuthorisationServiceTest {
         when(authorisationRepository.getPasswordHashByLogin("testuser")).thenReturn(hash);
 
         assertThrows(InvalidCredentialsException.class, () ->
-                authorisationService.getUserByLoginAndPassword("testuser", "wrongPassword")
+                authorisationService.getUserByLoginAndPassword(new AuthorisationRequest("testuser", "wrongPassword"))
         );
     }
 
@@ -66,7 +71,7 @@ class AuthorisationServiceTest {
                 .thenThrow(new SQLException("Couldn't get user id due to unknown reason"));
 
         assertThrows(InvalidCredentialsException.class, () ->
-                authorisationService.getUserByLoginAndPassword("ghost", "anyPassword")
+                authorisationService.getUserByLoginAndPassword(new AuthorisationRequest("ghost", "anyPassword"))
         );
     }
 }
