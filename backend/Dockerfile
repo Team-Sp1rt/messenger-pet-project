@@ -9,6 +9,7 @@ COPY pom.xml .
 RUN ./mvnw dependency:go-offline -B
 
 COPY src src
+COPY docs docs
 
 RUN ./mvnw clean package -DskipTests -B
 
