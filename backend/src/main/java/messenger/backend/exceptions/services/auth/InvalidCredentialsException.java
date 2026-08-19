@@ -1,6 +1,8 @@
-package messenger.backend.exceptions;
+package messenger.backend.exceptions.services.auth;
 
-public class InvalidCredentialsException extends RuntimeException {
+import messenger.backend.exceptions.services.DatabaseException;
+
+public class InvalidCredentialsException extends DatabaseException {
     public InvalidCredentialsException(String message) {
         super(message);
     }

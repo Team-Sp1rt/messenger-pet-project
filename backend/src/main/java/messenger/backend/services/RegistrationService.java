@@ -3,7 +3,8 @@ package messenger.backend.services;
 import messenger.backend.dtos.User;
 import messenger.backend.dtos.requests.RegistrationRequest;
 import messenger.backend.dtos.responses.AuthResponse;
-import messenger.backend.exceptions.UserAlreadyExistsException;
+import messenger.backend.exceptions.services.DatabaseException;
+import messenger.backend.exceptions.services.auth.UserAlreadyExistsException;
 import messenger.backend.repositories.AuthorisationRepository;
 import messenger.backend.repositories.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -11,7 +12,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.SQLException;
-import java.time.LocalDate;
 
 @Service
 public class RegistrationService {
@@ -35,6 +35,8 @@ public class RegistrationService {
     public AuthResponse registerUser(RegistrationRequest registerRequest) {
         String passwordHash = passwordEncoder.encode(registerRequest.password());
 
+        //TODO: всё ещё плохая обработка.
+        // Упадёт одинаково и когда login уже есть в таблице authorisation, и когда username есть в users
         try {
             Long id = authorisationRepository.insertNewAuthorisationReturnsUserID(registerRequest.login(), passwordHash);
             User user = new User(id, registerRequest.username(), "", registerRequest.birthday());
@@ -47,7 +49,7 @@ public class RegistrationService {
             if ("23505".equals(e.getSQLState())) {
                 throw new UserAlreadyExistsException("A user with this username already exists");
             } else {
-                throw new RuntimeException("Failed to register the user", e);
+                throw new DatabaseException("Failed to register the user: ", e);
             }
         }
     }

@@ -1,7 +1,8 @@
 package messenger.backend.repositories;
 
-import messenger.backend.dtos.Message;
 import messenger.backend.dtos.User;
+import messenger.backend.exceptions.repostitories.users.NoSuchUserException;
+import messenger.backend.generated.model.UserSummary;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Repository;
 
@@ -40,7 +41,7 @@ public class UserRepository {
 
     public User getUserByID(Long id) throws SQLException {
         String sql = """
-            SELECT username, bio, birthday FROM users
+            SELECT * FROM users
             WHERE id = ?;
             """;
 
@@ -50,7 +51,7 @@ public class UserRepository {
 
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 if (!resultSet.next()) {
-                    throw new SQLException("Couldn't get user due to unknown reason");
+                    throw new NoSuchUserException("Couldn't get user due to unknown reason");
                 }
 
                 return mapRowToUser(resultSet);
@@ -60,7 +61,7 @@ public class UserRepository {
         }
     }
 
-    public List<User> getNUsersStartingWithSubstring(String substring, Integer n) throws SQLException {
+    public List<UserSummary> getNUserSummariesStartingWithSubstring(String substring, Integer n) throws SQLException {
         String sql = """
             SELECT * FROM users
             WHERE username ILIKE ?
@@ -73,10 +74,10 @@ public class UserRepository {
             preparedStatement.setInt(2, n);
 
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                List<User> foundUsers = mapResultSetToUsersList(resultSet);
+                List<UserSummary> foundUsers = mapResultSetToUserSummariesList(resultSet);
 
                 if (foundUsers.isEmpty()) {
-                    throw new SQLException("Couldn't find any users with username like provided");
+                    throw new NoSuchUserException("Couldn't find any user with username like provided");
                 }
 
                 return foundUsers;
@@ -121,5 +122,22 @@ public class UserRepository {
         }
 
         return usersList;
+    }
+
+    private UserSummary mapRowToUserSummary(ResultSet resultSet) throws SQLException {
+        return new UserSummary(
+                Long.toString(resultSet.getLong("id")),
+                resultSet.getString("username")
+        );
+    }
+
+    private List<UserSummary> mapResultSetToUserSummariesList(ResultSet resultSet) throws SQLException {
+        List<UserSummary> userSummariesList = new LinkedList<>();
+
+        while (resultSet.next()) {
+            userSummariesList.add(mapRowToUserSummary(resultSet));
+        }
+
+        return userSummariesList;
     }
 }

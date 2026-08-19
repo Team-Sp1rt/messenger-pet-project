@@ -2,8 +2,7 @@ package messenger.backend.services;
 
 import messenger.backend.dtos.User;
 import messenger.backend.dtos.requests.RegistrationRequest;
-import messenger.backend.dtos.responses.AuthResponse;
-import messenger.backend.exceptions.UserAlreadyExistsException;
+import messenger.backend.exceptions.services.auth.UserAlreadyExistsException;
 import messenger.backend.repositories.AuthorisationRepository;
 import messenger.backend.repositories.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,7 +12,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.jwt.JwtEncoder;
 
 import java.sql.SQLException;
 import java.time.LocalDate;
@@ -24,6 +22,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class RegistrationServiceTest {
+
     @Mock
     private AuthorisationRepository authorisationRepository;
 
