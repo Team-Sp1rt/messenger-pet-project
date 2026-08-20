@@ -49,7 +49,7 @@ public class RegistrationService {
             if ("23505".equals(e.getSQLState())) {
                 throw new UserAlreadyExistsException("A user with this username already exists");
             } else {
-                throw new DatabaseException("Failed to register the user: ", e);
+                throw new DatabaseException("Failed to register the user", e);
             }
         }
     }
