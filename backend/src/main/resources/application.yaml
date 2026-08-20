@@ -5,11 +5,6 @@ spring:
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/messenger
     username: ${DB_USER:messenger}
     password: ${DB_PASSWORD:messenger}
-  flyway:
-    enabled: true
-  jpa:
-    hibernate:
-      ddl-auto: validate
 
 jwt:
   secret: ${JWT_SECRET:S0gGkYhpg1yyIavEO/lk6xbjnEL7IJ1uVHtwQG8BqAw=}
