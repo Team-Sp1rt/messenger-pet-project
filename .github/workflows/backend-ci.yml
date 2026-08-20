@@ -29,7 +29,7 @@ jobs:
 
       # 3. Запустить PostgreSQL через Docker Compose
       - name: Start PostgreSQL
-        run: docker compose up -d
+        run: docker compose up -d postgres
 
       # 4. Проверить, что контейнер поднялся
       - name: Show running containers
