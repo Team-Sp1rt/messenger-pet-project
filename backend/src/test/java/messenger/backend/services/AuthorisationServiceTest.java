@@ -1,9 +1,9 @@
 package messenger.backend.services;
 
 import messenger.backend.dtos.User;
+import messenger.backend.exceptions.services.auth.InvalidCredentialsException;
 import messenger.backend.dtos.requests.AuthorisationRequest;
 import messenger.backend.dtos.responses.AuthResponse;
-import messenger.backend.exceptions.InvalidCredentialsException;
 import messenger.backend.repositories.AuthorisationRepository;
 import messenger.backend.repositories.UserRepository;
 import org.junit.jupiter.api.BeforeEach;

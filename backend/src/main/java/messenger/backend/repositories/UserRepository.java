@@ -1,12 +1,16 @@
 package messenger.backend.repositories;
 
 import messenger.backend.dtos.User;
+import messenger.backend.exceptions.repostitories.users.NoSuchUserException;
+import messenger.backend.generated.model.UserSummary;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
 import java.sql.*;
 import java.time.LocalDate;
+import java.util.LinkedList;
+import java.util.List;
 
 @Repository
 public class UserRepository {
@@ -37,7 +41,7 @@ public class UserRepository {
 
     public User getUserByID(Long id) throws SQLException {
         String sql = """
-            SELECT username, bio, birthday FROM users
+            SELECT * FROM users
             WHERE id = ?;
             """;
 
@@ -45,21 +49,41 @@ public class UserRepository {
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setLong(1, id);
 
-            String username;
-            String bio;
-            LocalDate birthday;
-
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 if (!resultSet.next()) {
-                    throw new SQLException("Couldn't get user due to unknown reason");
+                    throw new NoSuchUserException("Couldn't get user due to unknown reason");
                 }
 
-                username = resultSet.getString("username");
-                bio = resultSet.getString("bio");
-                birthday = resultSet.getObject("birthday", LocalDate.class);
+                return mapRowToUser(resultSet);
             }
+        } finally {
+            DataSourceUtils.releaseConnection(connection, dataSource);
+        }
+    }
 
-            return new User(id, username, bio, birthday);
+    public List<UserSummary> getNUserSummariesOfUsersWithSubstringInUsername(String substring, Integer n)
+            throws SQLException {
+        String sql = """
+            SELECT * FROM users
+            WHERE username ILIKE ?
+            ORDER BY username
+            LIMIT ?;
+            """;
+
+        Connection connection = DataSourceUtils.getConnection(dataSource);
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setString(1, '%' + substring + '%');
+            preparedStatement.setInt(2, n);
+
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                List<UserSummary> foundUsers = mapResultSetToUserSummariesList(resultSet);
+
+                if (foundUsers.isEmpty()) {
+                    throw new NoSuchUserException("Couldn't find any user with username like provided");
+                }
+
+                return foundUsers;
+            }
         } finally {
             DataSourceUtils.releaseConnection(connection, dataSource);
         }
@@ -81,5 +105,31 @@ public class UserRepository {
         } finally {
             DataSourceUtils.releaseConnection(connection, dataSource);
         }
+    }
+
+    private User mapRowToUser(ResultSet resultSet) throws SQLException {
+        return new User(
+                resultSet.getLong("id"),
+                resultSet.getString("username"),
+                resultSet.getString("bio"),
+                resultSet.getObject("birthday", LocalDate.class)
+        );
+    }
+
+    private UserSummary mapRowToUserSummary(ResultSet resultSet) throws SQLException {
+        return new UserSummary(
+                Long.toString(resultSet.getLong("id")),
+                resultSet.getString("username")
+        );
+    }
+
+    private List<UserSummary> mapResultSetToUserSummariesList(ResultSet resultSet) throws SQLException {
+        List<UserSummary> userSummariesList = new LinkedList<>();
+
+        while (resultSet.next()) {
+            userSummariesList.add(mapRowToUserSummary(resultSet));
+        }
+
+        return userSummariesList;
     }
 }

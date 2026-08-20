@@ -1,6 +1,8 @@
 package messenger.backend.repositories;
 
 import messenger.backend.dtos.User;
+import messenger.backend.exceptions.repostitories.users.NoSuchUserException;
+import messenger.backend.generated.model.UserSummary;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,9 +18,12 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
+
+//TODO: переделать нахуй тесты
 
 @SpringBootTest
 @Testcontainers
@@ -55,38 +60,63 @@ class UserRepositoryIntegrationTest {
 
     @Test
     void insertNewUser_thenGetUserByID_returnsCorrectData() throws SQLException {
-        Long id = givenDBWithUser("meow", LocalDate.of(2000, 1, 1));
+        Long id = givenUserInDB("meow", LocalDate.of(2000, 1, 1));
 
         User user = userRepository.getUserByID(id);
 
-        thenUserDataShouldBeCorrect(user, id, "meow", null, LocalDate.of(2000, 1, 1));
+        assertEquals(user, new User(id, "meow", "", LocalDate.of(2000, 1, 1)));
+    }
+
+    @Test
+    void getUserByIDTest_incorrectID_throwsNoSuchUserException() {
+        assertThrows(NoSuchUserException.class, () -> userRepository.getUserByID(13L));
+    }
+
+    //Фу
+    @Test
+    void getNUserSummariesStartingWithSubstring_returnsCorrectSortedUserSummariesList() throws SQLException {
+        Long[] ids = new Long[5];
+        ids[0] = givenUserInDB("meow", LocalDate.of(2000, 1, 1), "1");
+        ids[1] = givenUserInDB("meow-meow", LocalDate.of(2000, 1, 1), "2");
+        ids[2] = givenUserInDB("123meow-meow", LocalDate.of(2000, 1, 1), "3");
+        ids[3] = givenUserInDB("meow-meow-meow", LocalDate.of(2000, 1, 1), "4");
+        ids[4] = givenUserInDB("moo", LocalDate.of(2000, 1, 1), "5");
+
+        List<UserSummary> actualUserSummariesList = userRepository.getNUserSummariesOfUsersWithSubstringInUsername("meow", 5);
+
+        List<UserSummary> expectedUserSummariesList = new ArrayList<>(List.of(
+                new UserSummary(Long.toString(ids[2]), "123meow-meow"),
+                new UserSummary(Long.toString(ids[0]), "meow"),
+                new UserSummary(Long.toString(ids[1]), "meow-meow"),
+                new UserSummary(Long.toString(ids[3]), "meow-meow-meow"))
+        );
+        assertEquals(expectedUserSummariesList, actualUserSummariesList);
+    }
+
+    @Test
+    void getNUserSummariesStartingWithSubstring_noUsersWithSimilarUsername_throwsNoSuchUserException() {
+        assertThrows(NoSuchUserException.class, () -> userRepository.getNUserSummariesOfUsersWithSubstringInUsername("oink", 13));
     }
 
     @Test
     void changeUserBioByID_thenGetUserByID_returnsCorrectData() throws SQLException {
-        Long id = givenDBWithUser("meow", LocalDate.of(2000, 1, 1));
+        Long id = givenUserInDB("meow", LocalDate.of(2000, 1, 1));
+
         userRepository.changeUserBioByID(id, "meow-meow-meow");
 
-        User user = userRepository.getUserByID(id);
-
-        thenUserDataShouldBeCorrect(user, id, "meow", "meow-meow-meow", LocalDate.of(2000, 1, 1));
+        User actualUser = userRepository.getUserByID(id);
+        User expectedUser = new User(id, "meow", "meow-meow-meow", LocalDate.of(2000, 1, 1));
+        assertEquals(expectedUser, actualUser);
     }
 
-    @Test
-    void getUserByIDTest_incorrectID_throwsSQLException() {
-        assertThrows(SQLException.class, () -> userRepository.getUserByID(13L));
+
+    private Long givenUserInDB(String username, LocalDate birthday) throws SQLException {
+        return givenUserInDB(username, birthday, "");
     }
 
-    private Long givenDBWithUser(String username, LocalDate birthday) throws SQLException {
-        Long id = authorisationRepository.insertNewAuthorisationReturnsUserID("meow", "meow-meow");
-        userRepository.insertNewUser(new User(id, username, null, birthday));
+    private Long givenUserInDB(String username, LocalDate birthday, String loginDifference) throws SQLException {
+        Long id = authorisationRepository.insertNewAuthorisationReturnsUserID("meow" + loginDifference, "meow-meow");
+        userRepository.insertNewUser(new User(id, username, "", birthday));
         return id;
-    }
-
-    private void thenUserDataShouldBeCorrect(User user, Long id, String username, String bio, LocalDate birthday) {
-        assertEquals(id, user.id());
-        assertEquals(username, user.username());
-        assertEquals(bio, user.bio());
-        assertEquals(birthday, user.birthday());
     }
 }
