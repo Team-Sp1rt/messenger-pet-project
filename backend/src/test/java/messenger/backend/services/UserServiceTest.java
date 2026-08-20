@@ -29,14 +29,14 @@ class UserServiceTest {
     @Test
     void searchUsers_returnsCorrectUserSummariesList() throws SQLException {
         userService.searchUsers("moo", 13);
-        verify(userRepository).getNUserSummariesStartingWithSubstring("moo", 13);
+        verify(userRepository).getNUserSummariesOfUsersWithSubstringInUsername("moo", 13);
     }
 
     @Test
     void searchUsers_unexpectedSQLException_throwsDatabaseException() throws SQLException {
         SQLException connectionException = new SQLException("connection refused", "08001");
 
-        when(userRepository.getNUserSummariesStartingWithSubstring(anyString(), anyInt()))
+        when(userRepository.getNUserSummariesOfUsersWithSubstringInUsername(anyString(), anyInt()))
                 .thenThrow(connectionException);
 
         assertThrows(DatabaseException.class, () ->

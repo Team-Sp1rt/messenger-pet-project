@@ -74,16 +74,18 @@ class UserRepositoryIntegrationTest {
 
     //Фу
     @Test
-    void getNUserSummariesStartingWithSubstring_returnsCorrectUserSummariesList() throws SQLException {
-        Long[] ids = new Long[4];
+    void getNUserSummariesStartingWithSubstring_returnsCorrectSortedUserSummariesList() throws SQLException {
+        Long[] ids = new Long[5];
         ids[0] = givenUserInDB("meow", LocalDate.of(2000, 1, 1), "1");
         ids[1] = givenUserInDB("meow-meow", LocalDate.of(2000, 1, 1), "2");
         ids[2] = givenUserInDB("123meow-meow", LocalDate.of(2000, 1, 1), "3");
         ids[3] = givenUserInDB("meow-meow-meow", LocalDate.of(2000, 1, 1), "4");
+        ids[4] = givenUserInDB("moo", LocalDate.of(2000, 1, 1), "5");
 
-        List<UserSummary> actualUserSummariesList = userRepository.getNUserSummariesStartingWithSubstring("meow", 5);
+        List<UserSummary> actualUserSummariesList = userRepository.getNUserSummariesOfUsersWithSubstringInUsername("meow", 5);
 
         List<UserSummary> expectedUserSummariesList = new ArrayList<>(List.of(
+                new UserSummary(Long.toString(ids[2]), "123meow-meow"),
                 new UserSummary(Long.toString(ids[0]), "meow"),
                 new UserSummary(Long.toString(ids[1]), "meow-meow"),
                 new UserSummary(Long.toString(ids[3]), "meow-meow-meow"))
@@ -93,7 +95,7 @@ class UserRepositoryIntegrationTest {
 
     @Test
     void getNUserSummariesStartingWithSubstring_noUsersWithSimilarUsername_throwsNoSuchUserException() {
-        assertThrows(NoSuchUserException.class, () -> userRepository.getNUserSummariesStartingWithSubstring("oink", 13));
+        assertThrows(NoSuchUserException.class, () -> userRepository.getNUserSummariesOfUsersWithSubstringInUsername("oink", 13));
     }
 
     @Test

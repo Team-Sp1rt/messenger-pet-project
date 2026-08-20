@@ -61,16 +61,18 @@ public class UserRepository {
         }
     }
 
-    public List<UserSummary> getNUserSummariesStartingWithSubstring(String substring, Integer n) throws SQLException {
+    public List<UserSummary> getNUserSummariesOfUsersWithSubstringInUsername(String substring, Integer n)
+            throws SQLException {
         String sql = """
             SELECT * FROM users
             WHERE username ILIKE ?
+            ORDER BY username
             LIMIT ?;
             """;
 
         Connection connection = DataSourceUtils.getConnection(dataSource);
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-            preparedStatement.setString(1, substring + '%');
+            preparedStatement.setString(1, '%' + substring + '%');
             preparedStatement.setInt(2, n);
 
             try (ResultSet resultSet = preparedStatement.executeQuery()) {

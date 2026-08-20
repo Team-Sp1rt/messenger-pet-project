@@ -15,9 +15,10 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
+    //TODO: сделать нормальную сортировку (когда сделаешь, нужно удалить у метода сортировку из бд)
     public UserSearchResponse searchUsers(String username, Integer limit) {
         try {
-            return new UserSearchResponse(userRepository.getNUserSummariesStartingWithSubstring(username, limit));
+            return new UserSearchResponse(userRepository.getNUserSummariesOfUsersWithSubstringInUsername(username, limit));
         } catch (SQLException e) {
             throw new DatabaseException("searchUsers failed due to SQLException: ", e);
         }
