@@ -1,4 +1,4 @@
-package messenger.backend.dtos;
+package messenger.backend.dtos.requests;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
