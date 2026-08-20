@@ -3,6 +3,7 @@ package messenger.backend.repositories;
 import messenger.backend.dtos.Message;
 import messenger.backend.dtos.NewMessage;
 import messenger.backend.dtos.User;
+import messenger.backend.exceptions.repostitories.messages.NoSuchMessageException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -119,6 +120,22 @@ public class MessagesRepositoryIntegrationTest {
                 );
 
         thenMessagesListShouldBeCorrect(messagesList, ids);
+    }
+
+    @Test
+    void getUserIDByMessageID_ReturnsCorrectUserID()
+            throws SQLException {
+        List<Long> ids = givenFilledAllTablesReturnsListOfIDs();
+
+        Long userID = messagesRepository.getUserIDByMessageID(ids.get(SECOND_MESSAGE));
+
+        assertEquals(ids.get(SECOND_USER), userID);
+    }
+
+    @Test
+    void getUserIDByMessageID_noMessageWithSuchID_ThrowsNoSuchMessageException()
+            throws SQLException {
+        assertThrows(NoSuchMessageException.class, () -> messagesRepository.getUserIDByMessageID(13L));
     }
 
     @Test

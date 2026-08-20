@@ -2,6 +2,7 @@ package messenger.backend.repositories;
 
 import messenger.backend.dtos.Message;
 import messenger.backend.dtos.NewMessage;
+import messenger.backend.exceptions.repostitories.messages.NoSuchMessageException;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Repository;
 
@@ -121,6 +122,28 @@ public class MessagesRepository {
 
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 return mapResultSetToMessagesList(resultSet);
+            }
+        } finally {
+            DataSourceUtils.releaseConnection(connection, dataSource);
+        }
+    }
+
+    public Long getUserIDByMessageID(Long messageID) throws SQLException{
+        String sql = """
+            SELECT user_id FROM messages
+            WHERE id = ?;
+            """;
+
+        Connection connection = DataSourceUtils.getConnection(dataSource);
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setLong(1, messageID);
+
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                if(!resultSet.next()) {
+                    throw new NoSuchMessageException("Couldn't find message with specified id");
+                }
+
+                return resultSet.getLong("user_id");
             }
         } finally {
             DataSourceUtils.releaseConnection(connection, dataSource);
