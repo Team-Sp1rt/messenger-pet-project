@@ -3,6 +3,7 @@ package messenger.backend.services;
 import messenger.backend.dtos.User;
 import messenger.backend.dtos.requests.AuthorisationRequest;
 import messenger.backend.dtos.responses.AuthResponse;
+import messenger.backend.exceptions.services.DatabaseException;
 import messenger.backend.exceptions.services.auth.InvalidCredentialsException;
 import messenger.backend.repositories.AuthorisationRepository;
 import messenger.backend.repositories.UserRepository;
@@ -19,6 +20,8 @@ public class AuthorisationService {
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
 
+    private record UserCredentials(long userId, String passwordHash) {}
+
     public AuthorisationService(AuthorisationRepository authorisationRepository,
                                 UserRepository userRepository,
                                 PasswordEncoder passwordEncoder,
@@ -29,22 +32,40 @@ public class AuthorisationService {
         this.jwtService = jwtService;
     }
 
-    public AuthResponse getUserByLoginAndPassword(AuthorisationRequest authorisationRequest) {
+    private UserCredentials getCredentials(String login) {
         try {
-            long userID = authorisationRepository.getUserIDByLogin(authorisationRequest.login());
-            String passwordHash = authorisationRepository.getPasswordHashByLogin(authorisationRequest.login());
+            long userId = authorisationRepository.getUserIDByLogin(login);
+            String passwordHash = authorisationRepository.getPasswordHashByLogin(login);
 
-            if (!passwordEncoder.matches(authorisationRequest.password(), passwordHash)) {
-                throw new InvalidCredentialsException("Invalid username or password");
-            }
-
-            User user = userRepository.getUserByID(userID);
-
-            String token = jwtService.generateAccessToken(userID, user.username());
-
-            return new AuthResponse(token, user);
+            return new UserCredentials(userId, passwordHash);
         } catch (SQLException e) {
-            throw new InvalidCredentialsException("Invalid username or password", e);
+            throw new InvalidCredentialsException("Invalid login or password", e);
         }
+    }
+
+    private void validatePassword(String password, String passwordHash) {
+        if (!passwordEncoder.matches(password, passwordHash)) {
+            throw new InvalidCredentialsException("Invalid login or password");
+        }
+    }
+
+    private User getUser(long userId) {
+        try {
+            return userRepository.getUserByID(userId);
+        } catch (SQLException e) {
+            throw new DatabaseException("Failed to retrieve user", e);
+        }
+    }
+
+    public AuthResponse getUserByLoginAndPassword(AuthorisationRequest request) {
+        UserCredentials credentials = getCredentials(request.login());
+
+        validatePassword(request.password(), credentials.passwordHash());
+
+        User user = getUser(credentials.userId());
+
+        String token = jwtService.generateAccessToken(credentials.userId(), user.username());
+
+        return new AuthResponse(token, user);
     }
 }

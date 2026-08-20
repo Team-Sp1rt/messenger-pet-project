@@ -1,6 +1,7 @@
 package messenger.backend.services;
 
 import messenger.backend.dtos.User;
+import messenger.backend.exceptions.services.DatabaseException;
 import messenger.backend.exceptions.services.auth.InvalidCredentialsException;
 import messenger.backend.dtos.requests.AuthorisationRequest;
 import messenger.backend.dtos.responses.AuthResponse;
@@ -17,6 +18,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.sql.SQLException;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -39,18 +41,20 @@ class AuthorisationServiceTest {
     }
 
     @Test
-    void getUserByLoginAndPassword_correctPassword_returnsUser() throws SQLException {
+    void getUserByLoginAndPassword_correctPassword_returnsUserAndToken() throws SQLException {
         String rawPassword = "password123";
         String hash = passwordEncoder.encode(rawPassword);
-        User newUser = new User(1L, "Test", "", null);
+        User user = new User(1L, "Test", "", null);
 
         when(authorisationRepository.getUserIDByLogin("testuser")).thenReturn(1L);
         when(authorisationRepository.getPasswordHashByLogin("testuser")).thenReturn(hash);
-        when(userRepository.getUserByID(1L)).thenReturn(newUser);
+        when(userRepository.getUserByID(1L)).thenReturn(user);
+        when(jwtService.generateAccessToken(1L, "Test")).thenReturn("test-token");
 
         AuthResponse result = authorisationService.getUserByLoginAndPassword(new AuthorisationRequest("testuser", rawPassword));
 
-        assertEquals(newUser, result.user());
+        assertEquals(user, result.user());
+        assertEquals("test-token", result.token());
     }
 
     @Test
@@ -63,15 +67,50 @@ class AuthorisationServiceTest {
         assertThrows(InvalidCredentialsException.class, () ->
                 authorisationService.getUserByLoginAndPassword(new AuthorisationRequest("testuser", "wrongPassword"))
         );
+
+        verifyNoInteractions(userRepository);
+        verifyNoInteractions(jwtService);
     }
 
     @Test
     void getUserByLoginAndPassword_nonExistentLogin_throwsInvalidCredentialsException() throws SQLException {
         when(authorisationRepository.getUserIDByLogin("ghost"))
-                .thenThrow(new SQLException("Couldn't get user id due to unknown reason"));
+                .thenThrow(new SQLException("User not found"));
 
         assertThrows(InvalidCredentialsException.class, () ->
                 authorisationService.getUserByLoginAndPassword(new AuthorisationRequest("ghost", "anyPassword"))
         );
+
+        verifyNoInteractions(userRepository);
+        verifyNoInteractions(jwtService);
+    }
+
+    @Test
+    void getUserByLoginAndPassword_databaseErrorWhileGettingCredentials_throwsInvalidCredentialsException() throws SQLException {
+        when(authorisationRepository.getUserIDByLogin("testuser"))
+                .thenThrow(new SQLException("Connection refused", "08001"));
+
+        assertThrows(InvalidCredentialsException.class, () ->
+                authorisationService.getUserByLoginAndPassword(new AuthorisationRequest("testuser", "password123"))
+        );
+
+        verifyNoInteractions(userRepository);
+        verifyNoInteractions(jwtService);
+    }
+
+    @Test
+    void getUserByLoginAndPassword_databaseErrorWhileGettingUser_throwsDatabaseException() throws SQLException {
+        String hash = passwordEncoder.encode("password123");
+
+        when(authorisationRepository.getUserIDByLogin("testuser")).thenReturn(1L);
+        when(authorisationRepository.getPasswordHashByLogin("testuser")).thenReturn(hash);
+        when(userRepository.getUserByID(1L))
+                .thenThrow(new SQLException("Connection refused", "08001"));
+
+        assertThrows(DatabaseException.class, () ->
+                authorisationService.getUserByLoginAndPassword(new AuthorisationRequest("testuser", "password123"))
+        );
+
+        verifyNoInteractions(jwtService);
     }
 }
