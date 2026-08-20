@@ -1,3 +1,0 @@
-CREATE TABLE chats (
-    id BIGSERIAL PRIMARY KEY
-);

@@ -24,8 +24,7 @@ public class ChatsRepositoryIntegrationTest {
     static PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:16")
             .withDatabaseName("messenger")
             .withUsername("messenger")
-            .withPassword("messenger")
-            .withInitScript("03_chats.sql");
+            .withPassword("messenger");
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
@@ -43,7 +42,7 @@ public class ChatsRepositoryIntegrationTest {
     void cleanDatabase() throws SQLException {
         try (Connection conn = dataSource.getConnection();
              Statement stmt = conn.createStatement()) {
-            stmt.execute("TRUNCATE TABLE chats RESTART IDENTITY");
+            stmt.execute("TRUNCATE TABLE authorisation, users, chat_members, chats, messages RESTART IDENTITY");
         }
     }
 
