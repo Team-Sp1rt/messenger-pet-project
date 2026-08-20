@@ -33,8 +33,7 @@ class UserRepositoryIntegrationTest {
     static PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:16")
             .withDatabaseName("messenger")
             .withUsername("messenger")
-            .withPassword("messenger")
-            .withInitScripts("01_authorisation.sql", "02_users.sql");
+            .withPassword("messenger");
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
@@ -54,7 +53,7 @@ class UserRepositoryIntegrationTest {
     void cleanDatabase() throws SQLException {
         try (Connection conn = dataSource.getConnection();
              Statement stmt = conn.createStatement()) {
-            stmt.execute("TRUNCATE TABLE users, authorisation RESTART IDENTITY CASCADE");
+            stmt.execute("TRUNCATE TABLE authorisation, users, chat_members, chats, messages RESTART IDENTITY");
         }
     }
 
