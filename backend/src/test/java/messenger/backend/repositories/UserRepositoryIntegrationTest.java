@@ -84,10 +84,10 @@ class UserRepositoryIntegrationTest {
         List<UserSummary> actualUserSummariesList = userRepository.getNUserSummariesOfUsersWithSubstringInUsername("meow", 5);
 
         List<UserSummary> expectedUserSummariesList = new ArrayList<>(List.of(
-                new UserSummary(Long.toString(ids[2]), "123meow-meow"),
-                new UserSummary(Long.toString(ids[0]), "meow"),
-                new UserSummary(Long.toString(ids[1]), "meow-meow"),
-                new UserSummary(Long.toString(ids[3]), "meow-meow-meow"))
+                new UserSummary(ids[2], "123meow-meow"),
+                new UserSummary(ids[0], "meow"),
+                new UserSummary(ids[1], "meow-meow"),
+                new UserSummary(ids[3], "meow-meow-meow"))
         );
         assertEquals(expectedUserSummariesList, actualUserSummariesList);
     }

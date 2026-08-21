@@ -131,7 +131,7 @@ paths:
           description: ID сообщения, перед которым нужно загрузить историю
           schema:
             $ref: '#/components/schemas/Id'
-          example: '781'
+          example: 781
         - name: limit
           in: query
           required: false
@@ -211,9 +211,9 @@ components:
 
   schemas:
     Id:
-      type: string
-      pattern: '^\d+$'
-      example: '42'
+      type: integer
+      format: int64
+      example: 42
 
     UserSummary:
       type: object
@@ -334,7 +334,7 @@ components:
             - $ref: '#/components/schemas/Id'
             - type: 'null'
           description: ID для следующей страницы или null, если сообщений больше нет
-          example: '730'
+          example: 730
 
     ErrorResponse:
       type: object
