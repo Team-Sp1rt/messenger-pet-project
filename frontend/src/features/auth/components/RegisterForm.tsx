@@ -4,7 +4,7 @@ import { Calendar, KeyRound, LockIcon, UserRound } from 'lucide-react';
 import styles from '../styles/Form.module.css';
 
 import { registerRequest } from '../api/Auth';
-import { ApiError } from '../../../shared/api/Client';
+import { ApiError } from '../../../shared/types';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../shared/context/AuthContext';
 

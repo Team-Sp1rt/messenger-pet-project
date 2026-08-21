@@ -1,11 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { registerUnauthorizedHandler } from "../api/Client";
 
-type AuthContextType = {
-    token: string | null;
-    login: (token: string) => void;
-    logout: () => void;
-};
+import { registerUnauthorizedHandler } from "../api/Client";
+import type { AuthContextType } from "../types";
 
 const AuthContext = createContext<AuthContextType | null>(null);
 

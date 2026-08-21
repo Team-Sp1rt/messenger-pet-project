@@ -1,0 +1,65 @@
+.LeftMainHeader {
+    display: flex;
+    
+    padding: .5rem;
+}
+
+.burgerButton {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    min-width: 32px;
+    min-height: 32px;
+    padding: 4px;
+    border-radius: 1.5rem;
+    color: var(--text-secondary);
+
+    &:hover {
+        cursor: pointer;
+        background-color: rgba(170,170,170, .08);
+    }
+}
+
+.searchInput {
+    display: flex;
+    align-items: center;
+
+    width: 100%;
+    background-color: var(--bg-input);
+    border-radius: 1.375rem;
+    padding-inline-end: .1875rem;
+    margin-left: .625rem;
+    caret-color: #8774e1;
+    
+    .leftIconSearch {
+        width: 1.5rem;
+        height: 1.5rem;
+        margin-left: 0.75rem;
+        color: rgba(170, 170, 170, .5);
+    }
+
+    .input {
+        width: 80%;
+        height: 2.5rem;
+        border-radius: 1.375rem;
+        margin-bottom: 0;
+        box-shadow: none !important;
+        background-color: #0000 !important;
+        border: none !important;
+        padding: 6px 9px 7px 11px;
+        box-sizing: border-box;
+        font-family: inherit;
+
+        font-size: 1rem;
+        color: white;
+
+        &::placeholder {
+            color: #9EA7AF;
+        }
+
+        &:focus {
+            outline: none;
+        }
+    }
+}

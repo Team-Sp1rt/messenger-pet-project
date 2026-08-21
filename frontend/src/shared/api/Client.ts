@@ -1,12 +1,6 @@
-const BASE_URL = 'http://localhost:8080/api';
+import { ApiError } from "../types";
 
-export class ApiError extends Error {
-    status: number;
-    constructor(status: number, message: string) {
-        super(message);
-        this.status = status;
-    }
-}
+const BASE_URL = 'http://localhost:8080/api';
 
 let onUnauthorized: (() => void) | null = null;
 

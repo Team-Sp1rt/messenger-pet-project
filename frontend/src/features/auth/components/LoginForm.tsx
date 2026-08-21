@@ -5,7 +5,7 @@ import { KeyRound, LockIcon } from 'lucide-react';
 import styles from '../styles/Form.module.css';
 
 import { loginRequest } from '../api/Auth';
-import { ApiError } from '../../../shared/api/Client';
+import { ApiError } from '../../../shared/types';
 import { useAuth } from '../../../shared/context/AuthContext';
 
 function LoginForm() {
