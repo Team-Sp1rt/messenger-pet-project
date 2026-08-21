@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { KeyRound, LockIcon, UserRound } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { Calendar, KeyRound, LockIcon, UserRound } from 'lucide-react';
 
 import styles from '../styles/Form.module.css';
 
@@ -7,19 +7,26 @@ import { registerRequest } from '../api/Auth';
 import { ApiError } from '../../../shared/api/Client';
 
 function RegisterForm() {
-    const [username, setUsername] = useState('');
-    const [login, setLogin] = useState('');
-    const [password, setPassword] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    const dateRef = useRef<HTMLInputElement>(null);
+
     const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
+
+        const formData = new FormData(e.currentTarget);
+
+        const username = formData.get('username_field') as string;
+        const login = formData.get('login_field') as string;
+        const password = formData.get('password_field') as string;
+        const birthday = formData.get('birthday_field') as string;
+
         setError(null);
         setIsSubmitting(true);
 
         try {
-            const { token } = await registerRequest({ username, login, password });
+            const { token } = await registerRequest({ username, login, password, birthday });
             localStorage.setItem('token', token);
         } catch (err) {
             setError(
@@ -43,8 +50,6 @@ function RegisterForm() {
                     name="username_field"
                     type="text"
                     placeholder="Username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
                     required
                 />
             </div>
@@ -56,8 +61,6 @@ function RegisterForm() {
                     name="login_field"
                     type="text"
                     placeholder="Login"
-                    value={login}
-                    onChange={(e) => setLogin(e.target.value)}
                     required
                 />
             </div>
@@ -69,10 +72,20 @@ function RegisterForm() {
                     name="password_field"
                     type="password"
                     placeholder="Password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
                     required
                     minLength={8}
+                />
+            </div>
+
+            <div className={styles.inputWrapper}>
+                <Calendar size={18} onClick={() => dateRef.current?.showPicker()}/>
+                <input
+                    ref={dateRef}
+                    className={styles.input}
+                    name="birthday_field"
+                    type="date"
+                    placeholder="Birthday"
+                    required
                 />
             </div>
 
