@@ -118,7 +118,7 @@ public class UserRepository {
 
     private UserSummary mapRowToUserSummary(ResultSet resultSet) throws SQLException {
         return new UserSummary(
-                Long.toString(resultSet.getLong("id")),
+               resultSet.getLong("id"),
                 resultSet.getString("username")
         );
     }
