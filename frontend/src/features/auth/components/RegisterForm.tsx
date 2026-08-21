@@ -84,7 +84,6 @@ function RegisterForm() {
                     className={styles.input}
                     name="birthday_field"
                     type="date"
-                    placeholder="Birthday"
                     required
                 />
             </div>
