@@ -4,9 +4,10 @@ import messenger.backend.dtos.ChatEventType;
 import messenger.backend.dtos.Message;
 import messenger.backend.dtos.MessageChangedEvent;
 import messenger.backend.dtos.MessageDeletedEvent;
-import messenger.backend.dtos.responses.MessageResponse;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
+
+import java.time.ZoneOffset;
 
 @Component
 public class WebSocketMessagePublisher implements MessageEventPublisher {
@@ -48,13 +49,17 @@ public class WebSocketMessagePublisher implements MessageEventPublisher {
         );
     }
 
-    private MessageResponse toResponse(Message message) {
-        return new MessageResponse(
+    private messenger.backend.generated.model.Message toResponse(
+            messenger.backend.dtos.Message message
+    ) {
+        return new messenger.backend.generated.model.Message(
                 message.id(),
                 message.chatID(),
                 message.userID(),
                 message.content(),
-                message.createdAt().toInstant()
+                message.createdAt()
+                        .toInstant()
+                        .atOffset(ZoneOffset.UTC)
         );
     }
 }

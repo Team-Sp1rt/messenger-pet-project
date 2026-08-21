@@ -3,7 +3,6 @@ package messenger.backend.messaging;
 import messenger.backend.dtos.ChatEventType;
 import messenger.backend.dtos.Message;
 import messenger.backend.dtos.MessageChangedEvent;
-import messenger.backend.dtos.responses.MessageResponse;
 import messenger.backend.dtos.MessageDeletedEvent;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,6 +14,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.ZoneOffset;
 
 import static org.mockito.Mockito.verify;
 
@@ -39,12 +39,12 @@ class WebSocketMessagePublisherTest {
                 Timestamp.from(createdAt)
         );
 
-        MessageResponse response = new MessageResponse(
+        messenger.backend.generated.model.Message response = new messenger.backend.generated.model.Message(
                 10L,
                 15L,
                 7L,
                 "Привет",
-                createdAt
+                createdAt.atOffset(ZoneOffset.UTC)
         );
 
         MessageChangedEvent event = new MessageChangedEvent(ChatEventType.MESSAGE_CREATED, response);
@@ -69,12 +69,12 @@ class WebSocketMessagePublisherTest {
                 Timestamp.from(createdAt)
         );
 
-        MessageResponse response = new MessageResponse(
+        messenger.backend.generated.model.Message response = new messenger.backend.generated.model.Message(
                 10L,
                 15L,
                 7L,
                 "Исправленный текст",
-                createdAt
+                createdAt.atOffset(ZoneOffset.UTC)
         );
 
         MessageChangedEvent event = new MessageChangedEvent(ChatEventType.MESSAGE_UPDATED, response);
