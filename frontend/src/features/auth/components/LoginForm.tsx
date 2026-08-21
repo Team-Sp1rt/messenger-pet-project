@@ -1,29 +1,40 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { KeyRound, LockIcon } from 'lucide-react';
 
 import styles from '../styles/Form.module.css';
 
 import { loginRequest } from '../api/Auth';
 import { ApiError } from '../../../shared/api/Client';
+import { useAuth } from '../../../shared/context/AuthContext';
 
 function LoginForm() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    const navigate = useNavigate();
+    const { login } = useAuth();
 
     const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
 
         const formData = new FormData(e.currentTarget);
 
-        const login = formData.get('login_field') as string;
+        const loginValue = formData.get('login_field') as string;
         const password = formData.get('password_field') as string;
 
         setError(null);
         setIsSubmitting(true);
 
         try {
-            const { token } = await loginRequest({ login, password });
-            localStorage.setItem('token', token);
+            const { token } = await loginRequest({
+                login: loginValue,
+                password,
+            });
+
+            login(token);
+
+            navigate("/chats");
         } catch (err) {
             setError(
                 err instanceof ApiError
@@ -67,7 +78,7 @@ function LoginForm() {
             {error && <p className={styles.errorText}>{error}</p>}
 
             <button className={styles.submitButton} type="submit" disabled={isSubmitting}>
-                {isSubmitting ? 'Creating account...' : 'Sign up'}
+                {isSubmitting ? 'Signing in...' : 'Sign in'}
             </button>
         </form>
     )

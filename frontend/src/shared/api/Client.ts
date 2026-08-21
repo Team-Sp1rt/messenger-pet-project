@@ -8,14 +8,29 @@ export class ApiError extends Error {
     }
 }
 
+let onUnauthorized: (() => void) | null = null;
+
+export function registerUnauthorizedHandler(fn: () => void) {
+    onUnauthorized = fn;
+}
+
 export async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
+    const token = localStorage.getItem("token");
+    
     const res = await fetch(`${BASE_URL}${path}`, {
         ...options,
         headers: {
             'Content-Type': 'application/json',
             ...options.headers,
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
     });
+
+    if (res.status === 401 && !path.startsWith('/auth')) {
+        onUnauthorized?.();
+        
+        throw new ApiError(401, "Unauthorized");
+    }
 
     const data = await res.json().catch(() => null);
 

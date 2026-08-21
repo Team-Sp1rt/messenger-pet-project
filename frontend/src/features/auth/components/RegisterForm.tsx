@@ -5,12 +5,17 @@ import styles from '../styles/Form.module.css';
 
 import { registerRequest } from '../api/Auth';
 import { ApiError } from '../../../shared/api/Client';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../../shared/context/AuthContext';
 
 function RegisterForm() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const dateRef = useRef<HTMLInputElement>(null);
+    
+    const navigate = useNavigate();
+    const { login } = useAuth();
 
     const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -18,7 +23,7 @@ function RegisterForm() {
         const formData = new FormData(e.currentTarget);
 
         const username = formData.get('username_field') as string;
-        const login = formData.get('login_field') as string;
+        const loginValue = formData.get('login_field') as string;
         const password = formData.get('password_field') as string;
         const birthday = formData.get('birthday_field') as string;
 
@@ -26,8 +31,11 @@ function RegisterForm() {
         setIsSubmitting(true);
 
         try {
-            const { token } = await registerRequest({ username, login, password, birthday });
-            localStorage.setItem('token', token);
+            const { token } = await registerRequest({ username, login: loginValue, password, birthday });
+            
+            login(token);
+
+            navigate("/chats");
         } catch (err) {
             setError(
                 err instanceof ApiError
