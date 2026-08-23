@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class WebSocketAuthInterceptorTest {
+class StompJwtAuthenticationInterceptorTest {
 
     @Mock
     private JwtDecoder jwtDecoder;
@@ -31,7 +31,7 @@ class WebSocketAuthInterceptorTest {
     private MessageChannel channel;
 
     @InjectMocks
-    private WebSocketAuthInterceptor interceptor;
+    private StompJwtAuthenticationInterceptor interceptor;
 
     @Test
     void connectWithValidJwt_setsAuthenticatedUser() {

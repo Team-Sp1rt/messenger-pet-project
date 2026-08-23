@@ -17,13 +17,13 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 @Component
-public class WebSocketAuthInterceptor implements ChannelInterceptor {
+public class StompJwtAuthenticationInterceptor implements ChannelInterceptor {
 
     private static final String BEARER_PREFIX = "Bearer ";
 
     private final JwtDecoder jwtDecoder;
 
-    public WebSocketAuthInterceptor(JwtDecoder jwtDecoder) {
+    public StompJwtAuthenticationInterceptor(JwtDecoder jwtDecoder) {
         this.jwtDecoder = jwtDecoder;
     }
 
