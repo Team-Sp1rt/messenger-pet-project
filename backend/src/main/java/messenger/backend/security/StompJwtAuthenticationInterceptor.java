@@ -31,7 +31,13 @@ public class StompJwtAuthenticationInterceptor implements ChannelInterceptor {
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
         StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
 
-        if (accessor == null || accessor.getCommand() != StompCommand.CONNECT) {
+        if (accessor == null || accessor.getCommand() == null) {
+            return message;
+        }
+
+        StompCommand command = accessor.getCommand();
+
+        if (command != StompCommand.CONNECT && command != StompCommand.SEND && command != StompCommand.SUBSCRIBE) {
             return message;
         }
 
