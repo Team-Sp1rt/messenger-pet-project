@@ -21,7 +21,7 @@ public class WebSocketController {
 
     @MessageMapping("/chats/{chatId}/messages")
     public void sendNewMessage(@DestinationVariable long chatId,
-            SendMessageRequest request,
+            @Valid SendMessageRequest request,
             Principal principal) throws WebsocketServiceException {
         long userId = Long.parseLong(principal.getName());
 
@@ -31,7 +31,7 @@ public class WebSocketController {
     @MessageMapping("/chats/{chatId}/messages/{messageId}/edit")
     public void editeMessage(@DestinationVariable long chatId,
                              @DestinationVariable long messageId,
-                             EditMessageRequest request,
+                             @Valid EditMessageRequest request,
                              Principal principal) throws WebsocketServiceException {
         long userId = Long.parseLong(principal.getName());
 
