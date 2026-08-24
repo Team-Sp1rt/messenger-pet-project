@@ -48,6 +48,7 @@ public class ChatsController implements ChatsApi {
 
     @Override
     public ResponseEntity<ChatListResponse> getChats() {
+        // пока что просто заглушку пришлось написать
         return new ResponseEntity<>(null);
     }
 

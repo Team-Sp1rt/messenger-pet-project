@@ -151,9 +151,11 @@ public class MessagesRepository {
         }
     }
 
+    // этот метод видимо удалим.
+
     public Message getMessageById(Long messageId) throws SQLException {
         String sql = """
-        SELECT id, chat_id, user_id, content, created_at
+        SELECT *
         FROM messages
         WHERE id = ?;
         """;
