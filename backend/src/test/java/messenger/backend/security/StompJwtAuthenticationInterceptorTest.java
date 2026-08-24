@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class WebSocketAuthInterceptorTest {
+class StompJwtAuthenticationInterceptorTest {
 
     @Mock
     private JwtDecoder jwtDecoder;
@@ -31,7 +31,7 @@ class WebSocketAuthInterceptorTest {
     private MessageChannel channel;
 
     @InjectMocks
-    private WebSocketAuthInterceptor interceptor;
+    private StompJwtAuthenticationInterceptor interceptor;
 
     @Test
     void connectWithValidJwt_setsAuthenticatedUser() {
@@ -124,22 +124,28 @@ class WebSocketAuthInterceptorTest {
     }
 
     @Test
-    void sendFrame_doesNotRequireJwtAgain() {
+    void sendWithoutJwt_throwsUnauthorized() {
         Message<byte[]> message = createMessage(StompCommand.SEND, null);
 
-        Message<?> result = interceptor.preSend(message, channel);
+        MessageDeliveryException exception = assertThrows(
+                MessageDeliveryException.class,
+                () -> interceptor.preSend(message, channel)
+        );
 
-        assertSame(message, result);
+        assertTrue(exception.getMessage().contains("JWT is missing"));
         verifyNoInteractions(jwtDecoder);
     }
 
     @Test
-    void subscribeFrame_doesNotRequireJwtAgain() {
+    void subscribeWithoutJwt_throwsUnauthorized() {
         Message<byte[]> message = createMessage(StompCommand.SUBSCRIBE, null);
 
-        Message<?> result = interceptor.preSend(message, channel);
+        MessageDeliveryException exception = assertThrows(
+                MessageDeliveryException.class,
+                () -> interceptor.preSend(message, channel)
+        );
 
-        assertSame(message, result);
+        assertTrue(exception.getMessage().contains("JWT is missing"));
         verifyNoInteractions(jwtDecoder);
     }
 

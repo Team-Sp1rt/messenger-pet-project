@@ -35,7 +35,7 @@ public class WebsocketServiceTest {
     String content;
 
     @Mock
-    private ChatMembersRepository chatMembersRepository;
+    private ChatMembershipService chatMembershipService;
 
     @Mock
     private MessagesRepository messagesRepository;
@@ -62,7 +62,6 @@ public class WebsocketServiceTest {
         Set<Long> testSet = Set.of(userId);
         Timestamp timestamp = Timestamp.valueOf("2026-08-23 17:30:00");
 
-        when(chatMembersRepository.getAllMembersOfTheChat(chatId)).thenReturn(testSet);
         when(messagesRepository.insertNewMessageReturnsMessage(any(NewMessage.class))).thenReturn(message);
         when(message.id()).thenReturn(messageId);
         when(message.chatID()).thenReturn(chatId);
@@ -76,8 +75,8 @@ public class WebsocketServiceTest {
                 ArgumentCaptor.forClass(MessageChangedEvent.class);
         ArgumentCaptor<NewMessage> captorNewMessage =
                 ArgumentCaptor.forClass(NewMessage.class);
-        verify(chatMembersRepository, times(1))
-                .getAllMembersOfTheChat(chatId);
+
+        verify(chatMembershipService).checkUserInChat(userId, chatId);
 
         verify(messagesRepository, times(1))
                 .insertNewMessageReturnsMessage(captorNewMessage.capture());
@@ -108,7 +107,10 @@ public class WebsocketServiceTest {
         long anotherId = 8888;
         Set<Long> testSet = Set.of(anotherId);
 
-        when(chatMembersRepository.getAllMembersOfTheChat(chatId)).thenReturn(testSet);
+        doThrow(new WebsocketServiceException(
+                WebSocketErrorCode.CHAT_ACCESS_DENIED,
+                "User is not a member of this chat"
+        )).when(chatMembershipService).checkUserInChat(userId, chatId);
 
         WebsocketServiceException exception = assertThrows(
                 WebsocketServiceException.class,
@@ -118,12 +120,9 @@ public class WebsocketServiceTest {
         assertEquals("User is not a member of this chat", exception.getMessage());
         assertEquals(WebSocketErrorCode.CHAT_ACCESS_DENIED, exception.getCode());
 
-        verify(chatMembersRepository, times(1))
-                .getAllMembersOfTheChat(chatId);
-
         verify(messagesRepository, never())
                 .insertNewMessageReturnsMessage(any(NewMessage.class));
-
+        verify(chatMembershipService).checkUserInChat(userId, chatId);
         verify(simpMessagingTemplate, never())
                 .convertAndSend(any(), any(MessageChangedEvent.class));
 
@@ -134,7 +133,6 @@ public class WebsocketServiceTest {
         Set<Long> testSet = Set.of(userId);
         SQLException sqlException = new SQLException("Couldn't add message due to unknown reason");
 
-        when(chatMembersRepository.getAllMembersOfTheChat(chatId)).thenReturn(testSet);
         when(messagesRepository.insertNewMessageReturnsMessage(any(NewMessage.class))).thenThrow(sqlException);
 
 
@@ -144,8 +142,7 @@ public class WebsocketServiceTest {
         assertEquals(WebSocketErrorCode.MESSAGE_OPERATION_FAILED, websocketServiceException.getCode());
         assertEquals("Couldn't add message due to unknown reason", websocketServiceException.getMessage());
 
-        verify(chatMembersRepository, times(1))
-                .getAllMembersOfTheChat(chatId);
+        verify(chatMembershipService).checkUserInChat(userId, chatId);
 
         verify(messagesRepository, times(1))
                 .insertNewMessageReturnsMessage(any(NewMessage.class));

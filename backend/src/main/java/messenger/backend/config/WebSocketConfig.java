@@ -1,6 +1,7 @@
 package messenger.backend.config;
 
-import messenger.backend.security.WebSocketAuthInterceptor;
+import messenger.backend.security.StompDestinationAccessInterceptor;
+import messenger.backend.security.StompJwtAuthenticationInterceptor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
@@ -11,10 +12,13 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @Configuration
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
-    private final WebSocketAuthInterceptor authInterceptor;
+    private final StompJwtAuthenticationInterceptor authenticationInterceptor;
+    private final StompDestinationAccessInterceptor destinationAccessInterceptor;
 
-    public WebSocketConfig(WebSocketAuthInterceptor authInterceptor) {
-        this.authInterceptor = authInterceptor;
+    public WebSocketConfig(StompJwtAuthenticationInterceptor authenticationInterceptor,
+                           StompDestinationAccessInterceptor destinationAccessInterceptor) {
+        this.authenticationInterceptor = authenticationInterceptor;
+        this.destinationAccessInterceptor = destinationAccessInterceptor;
     }
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
@@ -30,6 +34,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
-        registration.interceptors(authInterceptor);
+        registration.interceptors(authenticationInterceptor, destinationAccessInterceptor);
     }
 }

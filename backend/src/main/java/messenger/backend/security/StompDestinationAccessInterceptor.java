@@ -1,0 +1,116 @@
+package messenger.backend.security;
+
+import messenger.backend.exceptions.services.WebsocketServiceException;
+import messenger.backend.services.ChatMembershipService;
+import messenger.backend.services.WebsocketService;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageDeliveryException;
+import org.springframework.messaging.simp.stomp.StompCommand;
+import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
+import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.messaging.support.MessageHeaderAccessor;
+import org.springframework.stereotype.Component;
+
+import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+
+@Component
+public class StompDestinationAccessInterceptor implements ChannelInterceptor {
+
+    private static final String APPLICATION_PREFIX = "/app/";
+    private static final String PERSONAL_ERRORS_DESTINATION = "/user/queue/errors";
+    private static final Pattern CHAT_EVENTS_DESTINATION = Pattern.compile("^/topic/chats/(\\d+)/events$");
+
+    private final ChatMembershipService chatMembershipService;
+
+    public StompDestinationAccessInterceptor(ChatMembershipService chatMembershipService) {
+        this.chatMembershipService = chatMembershipService;
+    }
+
+    @Override
+    public Message<?> preSend(Message<?> message, MessageChannel channel) {
+        StompHeaderAccessor accessor =
+                MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
+
+        if (accessor == null) {
+            return message;
+        }
+
+        StompCommand command = accessor.getCommand();
+
+        if (command == null) {
+            return message;
+        }
+
+        if (command != StompCommand.SEND && command != StompCommand.SUBSCRIBE) {
+            return message;
+        }
+
+        requireAuthenticatedUser(accessor);
+
+        if (command == StompCommand.SEND) {
+            checkSendDestination(accessor);
+        } else {
+            checkSubscribeDestination(accessor);
+        }
+
+        return message;
+    }
+
+    private void checkSendDestination(StompHeaderAccessor accessor) {
+        String destination = accessor.getDestination();
+
+        if (destination == null || destination.isBlank()) {
+            throw new MessageDeliveryException("ACCESS_DENIED: Destination is missing");
+        }
+
+        if (!destination.startsWith(APPLICATION_PREFIX)) {
+            throw new MessageDeliveryException("ACCESS_DENIED: Clients can send only to /app/**");
+        }
+    }
+
+    private void checkSubscribeDestination(StompHeaderAccessor accessor) {
+        String destination = accessor.getDestination();
+
+        if (destination == null || destination.isBlank()) {
+            throw new MessageDeliveryException("ACCESS_DENIED: Destination is missing");
+        }
+
+        if (PERSONAL_ERRORS_DESTINATION.equals(destination)) {
+            return;
+        }
+
+        Matcher chatEventsMatcher = CHAT_EVENTS_DESTINATION.matcher(destination);
+
+        if (chatEventsMatcher.matches()) {
+            long chatId = Long.parseLong(chatEventsMatcher.group(1));
+            long userId = Long.parseLong(accessor.getUser().getName());
+
+
+            try {
+                chatMembershipService.checkUserInChat(userId, chatId);
+            } catch (WebsocketServiceException exception) {
+                throw new MessageDeliveryException("ACCESS_DENIED: User is not a member of this chat");
+            }
+
+            return;
+        }
+
+        throw new MessageDeliveryException("ACCESS_DENIED: Subscription destination is not allowed");
+    }
+
+    private void requireAuthenticatedUser(StompHeaderAccessor accessor) {
+        if (accessor.getUser() == null) {
+            throw new MessageDeliveryException("ACCESS_DENIED: Authentication is required");
+        }
+
+        String userId = accessor.getUser().getName();
+
+        if (userId == null || userId.isBlank()) {
+            throw new MessageDeliveryException("ACCESS_DENIED: User ID is missing");
+        }
+    }
+}
