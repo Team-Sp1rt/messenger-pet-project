@@ -17,13 +17,13 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 @Component
-public class WebSocketAuthInterceptor implements ChannelInterceptor {
+public class StompJwtAuthenticationInterceptor implements ChannelInterceptor {
 
     private static final String BEARER_PREFIX = "Bearer ";
 
     private final JwtDecoder jwtDecoder;
 
-    public WebSocketAuthInterceptor(JwtDecoder jwtDecoder) {
+    public StompJwtAuthenticationInterceptor(JwtDecoder jwtDecoder) {
         this.jwtDecoder = jwtDecoder;
     }
 
@@ -31,7 +31,13 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
         StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
 
-        if (accessor == null || accessor.getCommand() != StompCommand.CONNECT) {
+        if (accessor == null || accessor.getCommand() == null) {
+            return message;
+        }
+
+        StompCommand command = accessor.getCommand();
+
+        if (command != StompCommand.CONNECT && command != StompCommand.SEND && command != StompCommand.SUBSCRIBE) {
             return message;
         }
 
