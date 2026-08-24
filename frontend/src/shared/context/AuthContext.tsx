@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 
 import { registerUnauthorizedHandler } from "../api/Client";
 import type { AuthContextType } from "../types";
+import { isTokenExpired } from "../utils/jwt";
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
@@ -10,8 +11,17 @@ export function AuthProvider({
 }: {
     children: React.ReactNode;
 }) {
-    const [token, setToken] = useState<string | null>(
-        () => localStorage.getItem("token")
+    const [token, setToken] = useState<string | null>(() => {
+            const stored = localStorage.getItem("token");
+            if (!stored) return null;
+
+            if (isTokenExpired(stored)) {
+                localStorage.removeItem("token");
+                return null;
+            }
+            
+            return stored;
+        }
     );
 
     const login = (token: string) => {

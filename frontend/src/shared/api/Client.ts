@@ -1,4 +1,5 @@
 import { ApiError } from "../types";
+import { isTokenExpired } from "../utils/jwt";
 
 const BASE_URL = 'http://localhost:8080/api';
 
@@ -11,6 +12,11 @@ export function registerUnauthorizedHandler(fn: () => void) {
 export async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
     const token = localStorage.getItem("token");
     
+    if (token && isTokenExpired(token) && !path.startsWith('/auth')) {
+        onUnauthorized?.();
+        throw new ApiError(401, "Unauthorized");
+    }
+
     const res = await fetch(`${BASE_URL}${path}`, {
         ...options,
         headers: {

@@ -6,7 +6,10 @@ html, body {
 
 body {
     background-color: var(--bg-page);
-    font-family: 'Monteserrat', sans-serif;
+}
+
+body, input, button {
+    font-family: 'Montserrat', sans-serif;
 }
 
 #root {
