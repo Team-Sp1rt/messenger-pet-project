@@ -53,13 +53,13 @@ public class ChatService {
         }
     }
 
-    public MessagePage getChatMessages(Long chatId, Long beforeMessageId, Integer limit, long userId) {
+    public MessagePage getChatMessages(Long chatId, Long beforeMessageId, Integer limit) {
         List<messenger.backend.dtos.Message> dbMessages;
         try {
             if (beforeMessageId == null) {
                 dbMessages = messagesRepository.getLastNMessagesInTheChat(limit + 1, chatId);
             } else {
-                // TODO: использовать метод, который напише ваня
+                // TODO: использовать метод, который напишет ваня
                 //   dbMessages = messagesRepository.getNMessagesInTheChatBeforeMessage(limit + 1, chatId, beforeMessageId);
                 Message beforeMessage = messagesRepository.getMessageById(beforeMessageId);
                 dbMessages = messagesRepository.getNMessagesInTheChatBeforeMessage(limit + 1, chatId, beforeMessage);

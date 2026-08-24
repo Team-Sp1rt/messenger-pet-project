@@ -35,13 +35,7 @@ public class ChatsController implements ChatsApi {
 
     @Override
     public ResponseEntity<MessagePage> getChatMessages(Long chatId, Long beforeMessageId, Integer limit) {
-        JwtAuthenticationToken authentication = (JwtAuthenticationToken) SecurityContextHolder
-                .getContext()
-                .getAuthentication();
-
-        long userId = Long.parseLong(authentication.getToken().getSubject());
-
-        MessagePage messagePage = chatService.getChatMessages(chatId, beforeMessageId, limit, userId);
+        MessagePage messagePage = chatService.getChatMessages(chatId, beforeMessageId, limit);
 
         return ResponseEntity.ok(messagePage);
     }
