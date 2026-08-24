@@ -84,7 +84,7 @@ class ChatServiceTest {
         when(messagesRepository.getLastNMessagesInTheChat(limit + 1, chatId))
                 .thenReturn(List.of(newestMessage, middleMessage, oldestMessage));
 
-        MessagePage result = chatService.getChatMessages(chatId, null, limit, userId);
+        MessagePage result = chatService.getChatMessages(chatId, null, limit);
 
         assertEquals(2, result.getItems().size());
         assertEquals(3L, result.getItems().getFirst().getId());
@@ -108,7 +108,7 @@ class ChatServiceTest {
         when(messagesRepository.getLastNMessagesInTheChat(limit + 1, chatId))
                 .thenReturn(List.of(newestMessage, middleMessage, oldestMessage));
 
-        MessagePage result = chatService.getChatMessages(chatId, null, limit, userId);
+        MessagePage result = chatService.getChatMessages(chatId, null, limit);
 
         assertEquals(3, result.getItems().size());
         assertEquals(3L, result.getItems().getFirst().getId());
@@ -132,7 +132,7 @@ class ChatServiceTest {
         when(messagesRepository.getNMessagesInTheChatBeforeMessage(limit + 1, chatId, newestMessage))
                 .thenReturn(List.of(middleMessage, oldestMessage));
 
-        MessagePage result = chatService.getChatMessages(chatId, beforeId, limit, userId);
+        MessagePage result = chatService.getChatMessages(chatId, beforeId, limit);
 
         assertEquals(2, result.getItems().size());
         assertEquals(2L, result.getItems().getFirst().getId());
