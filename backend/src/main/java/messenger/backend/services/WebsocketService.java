@@ -32,14 +32,6 @@ public class WebsocketService {
     public void sendMessage(long chatId, long userId,
                             String content) throws WebsocketServiceException {
 
-//        try {
-//            if (!chatMembersRepository.getAllChatsOfTheMember(userId).contains(chatId)) {
-//                throw new WebsocketServiceException(WebSocketErrorCode.CHAT_NOT_FOUND, "Chat not found");
-//            }
-//        } catch (SQLException e) {
-//            throw new WebsocketServiceException(WebSocketErrorCode.CHAT_NOT_FOUND, e.getMessage());
-//        }
-
         checkUserInChat(userId, chatId);
 
         try {

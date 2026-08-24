@@ -1,5 +1,7 @@
 package messenger.backend.security;
 
+import messenger.backend.exceptions.services.WebsocketServiceException;
+import messenger.backend.services.WebsocketService;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
@@ -20,6 +22,12 @@ public class StompDestinationAccessInterceptor implements ChannelInterceptor {
     private static final String APPLICATION_PREFIX = "/app/";
     private static final String PERSONAL_ERRORS_DESTINATION = "/user/queue/errors";
     private static final Pattern CHAT_EVENTS_DESTINATION = Pattern.compile("^/topic/chats/(\\d+)/events$");
+
+    private final WebsocketService websocketService;
+
+    public StompDestinationAccessInterceptor(WebsocketService websocketService) {
+        this.websocketService = websocketService;
+    }
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -79,8 +87,13 @@ public class StompDestinationAccessInterceptor implements ChannelInterceptor {
         if (chatEventsMatcher.matches()) {
             Long chatId = Long.valueOf(chatEventsMatcher.group(1));
             Long userId = Long.valueOf(accessor.getUser().getName());
-            // TODO: Проверить членство пользователя через сервис сони, которого еще нет:
-            // service.checkUserInChat(userId, chatId);
+
+
+            try {
+                websocketService.checkUserInChat(userId, chatId);
+            } catch (WebsocketServiceException exception) {
+                throw new MessageDeliveryException("ACCESS_DENIED: User is not a member of this chat");
+            }
 
             return;
         }
