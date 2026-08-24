@@ -40,13 +40,7 @@ public class WebsocketService {
 //            throw new WebsocketServiceException(WebSocketErrorCode.CHAT_NOT_FOUND, e.getMessage());
 //        }
 
-        try {
-            if (!chatMembersRepository.getAllMembersOfTheChat(chatId).contains(userId)) {
-                throw new WebsocketServiceException(WebSocketErrorCode.CHAT_ACCESS_DENIED, "User is not a member of this chat");
-            }
-        } catch (SQLException e) {
-            throw new WebsocketServiceException(WebSocketErrorCode.CHAT_ACCESS_DENIED, e.getMessage());
-        }
+        checkUserInChat(userId, chatId);
 
         try {
             messenger.backend.dtos.Message message = messagesRepository.insertNewMessageReturnsMessage(new NewMessage(chatId, userId, content));
@@ -108,5 +102,15 @@ public class WebsocketService {
                 message.createdAt().
                         toInstant().
                         atOffset(ZoneOffset.UTC));
+    }
+
+    public void checkUserInChat(long userId, long chatId) {
+        try {
+            if (!chatMembersRepository.getAllMembersOfTheChat(chatId).contains(userId)) {
+                throw new WebsocketServiceException(WebSocketErrorCode.CHAT_ACCESS_DENIED, "User is not a member of this chat");
+            }
+        } catch (SQLException e) {
+            throw new WebsocketServiceException(WebSocketErrorCode.CHAT_ACCESS_DENIED, e.getMessage());
+        }
     }
 }
