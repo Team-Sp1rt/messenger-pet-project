@@ -42,8 +42,13 @@ public class ChatsController implements ChatsApi {
 
     @Override
     public ResponseEntity<ChatListResponse> getChats() {
-        // пока что просто заглушку пришлось написать
-        return new ResponseEntity<>(null);
+        JwtAuthenticationToken authentication = (JwtAuthenticationToken) SecurityContextHolder
+                .getContext()
+                .getAuthentication();
+
+        long userId = Long.parseLong(authentication.getToken().getSubject());
+
+        return ResponseEntity.ok(chatService.getChats(userId));
     }
 
 }

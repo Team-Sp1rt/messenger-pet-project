@@ -4,14 +4,12 @@ import messenger.backend.dtos.Message;
 import messenger.backend.dtos.User;
 import messenger.backend.exceptions.repostitories.messages.NoSuchMessageException;
 import messenger.backend.exceptions.services.DatabaseException;
-import messenger.backend.generated.model.Chat;
-import messenger.backend.generated.model.CreateChatRequest;
-import messenger.backend.generated.model.MessagePage;
-import messenger.backend.generated.model.UserSummary;
+import messenger.backend.generated.model.*;
 import messenger.backend.repositories.ChatMembersRepository;
 import messenger.backend.repositories.ChatsRepository;
 import messenger.backend.repositories.MessagesRepository;
 import messenger.backend.repositories.UserRepository;
+import org.springframework.boot.webmvc.autoconfigure.WebMvcProperties;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.sql.SQLException;
@@ -19,6 +17,8 @@ import java.sql.Timestamp;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
 
 @Service
@@ -64,8 +64,6 @@ public class ChatService {
                 Message beforeMessage = messagesRepository.getMessageById(beforeMessageId);
                 dbMessages = messagesRepository.getNMessagesInTheChatBeforeMessage(limit + 1, chatId, beforeMessage);
             }
-        } catch (NoSuchMessageException e) {
-            throw new DatabaseException("beforeMessageId is invalid", e);
         } catch (SQLException e) {
             throw new DatabaseException("GetChatMessages failed due to SQLException: ", e);
         }
@@ -80,6 +78,32 @@ public class ChatService {
 
         return hasMore ? new MessagePage(apiMessages, apiMessages.getLast().getId())
                 : new MessagePage(apiMessages, null);
+    }
+
+    public ChatListResponse getChats(Long userId) {
+        try {
+
+            Set<Long> chatIds = chatMembersRepository.getAllChatsOfTheMember(userId);
+            List<ChatSummary> chatSummaryList = new ArrayList<>();
+            UserSummary userSummary = toUserSummary(userRepository.getUserByID(userId));
+
+            for (Long id : chatIds) {
+                Set<Long> memberIds = chatMembersRepository.getAllMembersOfTheChat(id);
+                List<Long> memberId = memberIds.stream().filter(a -> !Objects.equals(a, userId)).toList();
+                List<UserSummary> userSummaryList = new ArrayList<>();
+                userSummaryList.add(userSummary);
+                if (!memberId.isEmpty()) {
+                    userSummaryList.add(toUserSummary(userRepository.getUserByID(memberId.getFirst())));
+                }
+                List<Message> messages = messagesRepository.getLastNMessagesInTheChat(1, id);
+                chatSummaryList.add(new ChatSummary(id, userSummaryList, messages.isEmpty() ? null : toApiMessage(messages.getFirst())));
+            }
+
+            return new ChatListResponse(chatSummaryList);
+
+        } catch (SQLException e) {
+            throw new DatabaseException("GetChatList failed due to SQLException: ", e);
+        }
     }
 
     private messenger.backend.generated.model.Message toApiMessage(
