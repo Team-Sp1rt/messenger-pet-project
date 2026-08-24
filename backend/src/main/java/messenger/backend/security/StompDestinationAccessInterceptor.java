@@ -1,6 +1,7 @@
 package messenger.backend.security;
 
 import messenger.backend.exceptions.services.WebsocketServiceException;
+import messenger.backend.services.ChatMembershipService;
 import messenger.backend.services.WebsocketService;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -23,10 +24,10 @@ public class StompDestinationAccessInterceptor implements ChannelInterceptor {
     private static final String PERSONAL_ERRORS_DESTINATION = "/user/queue/errors";
     private static final Pattern CHAT_EVENTS_DESTINATION = Pattern.compile("^/topic/chats/(\\d+)/events$");
 
-    private final WebsocketService websocketService;
+    private final ChatMembershipService chatMembershipService;
 
-    public StompDestinationAccessInterceptor(WebsocketService websocketService) {
-        this.websocketService = websocketService;
+    public StompDestinationAccessInterceptor(ChatMembershipService chatMembershipService) {
+        this.chatMembershipService = chatMembershipService;
     }
 
     @Override
@@ -85,12 +86,12 @@ public class StompDestinationAccessInterceptor implements ChannelInterceptor {
         Matcher chatEventsMatcher = CHAT_EVENTS_DESTINATION.matcher(destination);
 
         if (chatEventsMatcher.matches()) {
-            Long chatId = Long.valueOf(chatEventsMatcher.group(1));
-            Long userId = Long.valueOf(accessor.getUser().getName());
+            long chatId = Long.parseLong(chatEventsMatcher.group(1));
+            long userId = Long.parseLong(accessor.getUser().getName());
 
 
             try {
-                websocketService.checkUserInChat(userId, chatId);
+                chatMembershipService.checkUserInChat(userId, chatId);
             } catch (WebsocketServiceException exception) {
                 throw new MessageDeliveryException("ACCESS_DENIED: User is not a member of this chat");
             }

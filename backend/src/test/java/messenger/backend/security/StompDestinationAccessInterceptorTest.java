@@ -2,6 +2,7 @@ package messenger.backend.security;
 
 import messenger.backend.dtos.WebSocketErrorCode;
 import messenger.backend.exceptions.services.WebsocketServiceException;
+import messenger.backend.services.ChatMembershipService;
 import messenger.backend.services.WebsocketService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,7 +23,7 @@ import static org.mockito.Mockito.verify;
 class StompDestinationAccessInterceptorTest {
 
     @Mock
-    private WebsocketService websocketService;
+    private ChatMembershipService chatMembershipService;
 
     @InjectMocks
     private StompDestinationAccessInterceptor interceptor;
@@ -75,7 +76,7 @@ class StompDestinationAccessInterceptorTest {
         Message<?> result = interceptor.preSend(message, null);
 
         assertSame(message, result);
-        verify(websocketService).checkUserInChat(7L, 42L);
+        verify(chatMembershipService).checkUserInChat(7L, 42L);
     }
 
     @Test
@@ -133,7 +134,7 @@ class StompDestinationAccessInterceptorTest {
     @Test
     void subscribeToChatEventsByNonMember_isDenied() {
         doThrow(new WebsocketServiceException(WebSocketErrorCode.CHAT_ACCESS_DENIED, "User is not a member of this chat"))
-                .when(websocketService).checkUserInChat(7L, 42L);
+                .when(chatMembershipService).checkUserInChat(7L, 42L);
 
         Message<byte[]> message = createMessage(StompCommand.SUBSCRIBE, "/topic/chats/42/events", "7");
 
@@ -144,6 +145,6 @@ class StompDestinationAccessInterceptorTest {
 
         assertTrue(exception.getMessage().contains("User is not a member of this chat"));
 
-        verify(websocketService).checkUserInChat(7L, 42L);
+        verify(chatMembershipService).checkUserInChat(7L, 42L);
     }
 }
