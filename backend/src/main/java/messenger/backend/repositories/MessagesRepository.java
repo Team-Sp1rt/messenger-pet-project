@@ -110,7 +110,8 @@ public class MessagesRepository {
         String sql = """
             SELECT * FROM messages
             WHERE chat_id = ? AND created_at < ?
-            ORDER BY created_at DESC, id DESC
+            ORDER BY created_at 
+            DESC, id DESC
             LIMIT ?;
             """;
 
