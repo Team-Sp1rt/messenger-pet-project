@@ -6,40 +6,79 @@
 |-------|-----------|------------|-------------|
 | **Frontend** | UI | React + Vite | Пользовательский интерфейс с компонентной архитектурой |
 | | State | Context API | Управление глобальным состоянием |
-| | API Client | Axios | HTTP-запросы к бэкенд-сервисам |
+| | API Client | Fetch API | HTTP-запросы к бэкенд-сервисам |
 | | Routing | React Router | Навигация на стороне клиента |
-| **Backend** | Auth Service | Java 21 + Spring Boot | Аутентификация и авторизация (JWT) |
-| | Chat Service | Java 21 + Spring Boot | Обмен сообщениями в реальном времени через WebSockets |
+| **Backend** | Application | Java 21 + Spring Boot | Монолитное серверное приложение |
+| | Authentication | Spring Security + JWT | Аутентификация и авторизация пользователей |
+| | Messaging | WebSockets | Обмен сообщениями в реальном времени |
 | **Database** | PostgreSQL | SQL | Реляционная база данных для пользователей и сообщений |
 
 ### Backend модули
 ```text
 messenger-pet-project
 ├───backend
+|   ├───docs
+│   │   └───openapi.yaml
+│   │
 │   ├───src
 │   │   ├───main
 │   │   │   ├───java
 │   │   │   │   └───messenger
 │   │   │   │       └───backend
+│   │   │   │           ├───config
+│   │   │   │           ├───controllers
 │   │   │   │           ├───dtos
+│   │   │   │           ├───exceptions
+│   │   │   │           ├───messaging
 │   │   │   │           ├───repositories
-│   │   │   │           └───services
+│   │   │   │           ├───security
+│   │   │   │           ├───services
+│   │   │   │           └───BackendApplication.java
 │   │   │   └───resources
-│   │   │       ├───application.yaml
-│   │   │       └─── init.sql (их много)
+│   │   │       ├───db
+│   │   │       │   └───migration
+│   │   │       │       ├───V1__init_schema.sql
+│   │   │       │       └───V2__add_chat_indexes.sql
+│   │   │       └───application.yaml
 │   │   └───test
 │   │       └───java
 │   │           └───messenger
 │   │               └───backend
-│   │                   ├───dtos
+│   │                   ├───messaging
 │   │                   ├───repositories
+│   │                   ├───security
 │   │                   └───services
-│   ├───uploads
 │   ├───Dockerfile
 │   └───pom.xml
 ├───frontend
 │   ├───public
-│   └───src
+│   ├───src
+│   │   ├───assets
+│   │   │   ├───fonts
+│   │   │   └───images
+│   │   │
+│   │   ├───features
+│   │   │   ├───auth
+│   │   │   │   ├───api
+│   │   │   │   ├───components
+│   │   │   │   ├───pages
+│   │   │   │   ├───styles
+│   │   │   │   └───types.ts
+│   │   │   │
+│   │   │   └───chats
+│   │   │       └───...
+│   │   │
+│   │   ├───shared
+│   │   │   ├───api
+│   │   │   ├───context
+│   │   │   ├───styles
+│   │   │   ├───utils
+│   │   │   └───types.ts
+│   │   │
+│   │   ├───App.tsx
+│   │   ├───AppRoutes.tsx
+│   │   └───main.tsx
+│   │
 │   └───Dockerfile
 └───docker-compose.yml
 ```
