@@ -1,6 +1,7 @@
 package messenger.backend.services;
 
 import messenger.backend.dtos.*;
+import messenger.backend.exceptions.repostitories.messages.NoSuchMessageException;
 import messenger.backend.exceptions.services.WebsocketServiceException;
 import messenger.backend.repositories.ChatMembersRepository;
 import messenger.backend.repositories.MessagesRepository;
@@ -51,14 +52,7 @@ public class WebsocketService {
             messenger.backend.dtos.Message message = messagesRepository.insertNewMessageReturnsMessage(new NewMessage(chatId, userId, content));
             simpMessagingTemplate.convertAndSend("/topic/chats/" + chatId + "/events",
                     new MessageChangedEvent(ChatEventType.MESSAGE_CREATED,
-                            new Message(
-                                    message.id(),
-                                    chatId,
-                                    userId,
-                                    content,
-                                    message.createdAt().
-                                            toInstant().
-                                            atOffset(ZoneOffset.UTC))));
+                            convertToMessage(message)));
         } catch (SQLException e) {
             throw new WebsocketServiceException(WebSocketErrorCode.MESSAGE_OPERATION_FAILED, e.getMessage());
         }
@@ -76,15 +70,9 @@ public class WebsocketService {
             messenger.backend.dtos.Message message = messagesRepository.editMessageReturnsMessage(messageId, content);
             simpMessagingTemplate.convertAndSend("/topic/chats/" + chatId + "/events",
                     new MessageChangedEvent(ChatEventType.MESSAGE_UPDATED,
-                            new Message(messageId,
-                                    chatId,
-                                    userId,
-                                    content,
-                                    message.createdAt().
-                                            toInstant().
-                                            atOffset(ZoneOffset.UTC))));
+                            convertToMessage(message)));
 
-        } catch (SQLException e) {
+        } catch (SQLException | NoSuchMessageException e) {
             throw new WebsocketServiceException(WebSocketErrorCode.MESSAGE_NOT_FOUND, "We can't found your message for edit");
         }
 
@@ -97,18 +85,28 @@ public class WebsocketService {
             if (messagesRepository.getUserIDByMessageID(messageId)!=userId) {
                 throw new WebsocketServiceException(WebSocketErrorCode.MESSAGE_ACCESS_DENIED, "You can't delete this message");
             }
-        } catch (SQLException e) {
-            throw new WebsocketServiceException(WebSocketErrorCode.MESSAGE_NOT_FOUND, e.getMessage());
-        }
 
-        try {
             messagesRepository.deleteMessage(messageId);
             simpMessagingTemplate.convertAndSend("/topic/chats/" + chatId + "/events",
                     new MessageDeletedEvent(ChatEventType.MESSAGE_DELETED,
                                     chatId,
                                     messageId));
+
         } catch (SQLException e) {
             throw new WebsocketServiceException(WebSocketErrorCode.MESSAGE_OPERATION_FAILED, "Couldn't delete message due to unknown reason");
+        } catch (NoSuchMessageException e) {
+            throw new WebsocketServiceException(WebSocketErrorCode.MESSAGE_NOT_FOUND, e.getMessage());
         }
+    }
+
+    private Message convertToMessage(messenger.backend.dtos.Message message) {
+        return new Message(
+                message.id(),
+                message.chatID(),
+                message.userID(),
+                message.content(),
+                message.createdAt().
+                        toInstant().
+                        atOffset(ZoneOffset.UTC));
     }
 }

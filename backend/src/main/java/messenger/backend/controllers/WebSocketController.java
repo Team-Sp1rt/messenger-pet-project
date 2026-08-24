@@ -1,5 +1,6 @@
 package messenger.backend.controllers;
 
+import jakarta.validation.Valid;
 import messenger.backend.dtos.requests.EditMessageRequest;
 import messenger.backend.dtos.requests.SendMessageRequest;
 import messenger.backend.exceptions.services.WebsocketServiceException;

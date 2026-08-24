@@ -1,6 +1,7 @@
 package messenger.backend.services;
 
 import messenger.backend.dtos.*;
+import messenger.backend.exceptions.repostitories.messages.NoSuchMessageException;
 import messenger.backend.exceptions.services.WebsocketServiceException;
 import messenger.backend.repositories.ChatMembersRepository;
 import messenger.backend.repositories.MessagesRepository;
@@ -64,6 +65,9 @@ public class WebsocketServiceTest {
         when(chatMembersRepository.getAllMembersOfTheChat(chatId)).thenReturn(testSet);
         when(messagesRepository.insertNewMessageReturnsMessage(any(NewMessage.class))).thenReturn(message);
         when(message.id()).thenReturn(messageId);
+        when(message.chatID()).thenReturn(chatId);
+        when(message.userID()).thenReturn(userId);
+        when(message.content()).thenReturn(content);
         when(message.createdAt()).thenReturn(timestamp);
 
         websocketService.sendMessage(chatId, userId, content);
@@ -157,6 +161,10 @@ public class WebsocketServiceTest {
 
         when(messagesRepository.getUserIDByMessageID(messageId)).thenReturn(userId);
         when(messagesRepository.editMessageReturnsMessage(messageId, content)).thenReturn(message);
+        when(message.id()).thenReturn(messageId);
+        when(message.chatID()).thenReturn(chatId);
+        when(message.content()).thenReturn(content);
+        when(message.userID()).thenReturn(userId);
         when(message.createdAt()).thenReturn(timestamp);
 
         websocketService.editMessage(chatId, userId, messageId, content);
@@ -227,6 +235,29 @@ public class WebsocketServiceTest {
                 .getUserIDByMessageID(messageId);
 
         verify(messagesRepository, times(1))
+                .editMessageReturnsMessage(messageId, content);
+
+        verify(simpMessagingTemplate, never())
+                .convertAndSend(any(), any(MessageChangedEvent.class));
+
+    }
+
+    @Test
+    void failedCheckingMessageInChatWhenEditMessage_AndThrowException() throws SQLException {
+        NoSuchMessageException messageException = new NoSuchMessageException("Couldn't find message with specified id");
+
+        when(messagesRepository.getUserIDByMessageID(messageId)).thenThrow(messageException);
+
+        WebsocketServiceException websocketServiceException = assertThrows(WebsocketServiceException.class,
+                () -> websocketService.editMessage(chatId, userId, messageId, content));
+
+        assertEquals(WebSocketErrorCode.MESSAGE_NOT_FOUND, websocketServiceException.getCode());
+        assertEquals("We can't found your message for edit", websocketServiceException.getMessage());
+
+        verify(messagesRepository, times(1))
+                .getUserIDByMessageID(messageId);
+
+        verify(messagesRepository, never())
                 .editMessageReturnsMessage(messageId, content);
 
         verify(simpMessagingTemplate, never())
@@ -309,6 +340,29 @@ public class WebsocketServiceTest {
 
         verify(simpMessagingTemplate, never())
                 .convertAndSend(any(), any(MessageDeletedEvent.class));
+
+    }
+
+    @Test
+    void failedCheckingMessageInChatWhenDeleteMessage_AndThrowException() throws SQLException {
+        NoSuchMessageException messageException = new NoSuchMessageException("Couldn't find message with specified id");
+
+        when(messagesRepository.getUserIDByMessageID(messageId)).thenThrow(messageException);
+
+        WebsocketServiceException websocketServiceException = assertThrows(WebsocketServiceException.class,
+                () -> websocketService.deleteMessage(chatId, userId, messageId));
+
+        assertEquals(WebSocketErrorCode.MESSAGE_NOT_FOUND, websocketServiceException.getCode());
+        assertEquals("Couldn't find message with specified id", websocketServiceException.getMessage());
+
+        verify(messagesRepository, times(1))
+                .getUserIDByMessageID(messageId);
+
+        verify(messagesRepository, never())
+                .editMessageReturnsMessage(messageId, content);
+
+        verify(simpMessagingTemplate, never())
+                .convertAndSend(any(), any(MessageChangedEvent.class));
 
     }
 }
