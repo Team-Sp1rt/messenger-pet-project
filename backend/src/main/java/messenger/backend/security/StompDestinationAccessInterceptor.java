@@ -26,11 +26,15 @@ public class StompDestinationAccessInterceptor implements ChannelInterceptor {
         StompHeaderAccessor accessor =
                 MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
 
-        if (accessor == null || accessor.getCommand() == null) {
+        if (accessor == null) {
             return message;
         }
 
         StompCommand command = accessor.getCommand();
+
+        if (command == null) {
+            return message;
+        }
 
         if (command != StompCommand.SEND && command != StompCommand.SUBSCRIBE) {
             return message;
