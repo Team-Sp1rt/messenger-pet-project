@@ -151,6 +151,30 @@ public class MessagesRepository {
         }
     }
 
+    public Message getMessageById(Long messageId) throws SQLException {
+        String sql = """
+        SELECT id, chat_id, user_id, content, created_at
+        FROM messages
+        WHERE id = ?;
+        """;
+
+        Connection connection = DataSourceUtils.getConnection(dataSource);
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+
+            preparedStatement.setLong(1, messageId);
+
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                if (!resultSet.next()) {
+                    throw new NoSuchMessageException("Message with id " + messageId + " was not found");
+                }
+
+                return mapRowToMessage(resultSet);
+            }
+        } finally {
+            DataSourceUtils.releaseConnection(connection, dataSource);
+        }
+    }
 
     private Message mapRowToMessage(ResultSet resultSet) throws SQLException {
         return new Message(
