@@ -4,8 +4,6 @@ import messenger.backend.dtos.Message;
 import messenger.backend.dtos.User;
 import messenger.backend.exceptions.repostitories.messages.NoSuchMessageException;
 import messenger.backend.exceptions.services.DatabaseException;
-import messenger.backend.exceptions.services.chats.ChatAccessDeniedException;
-import messenger.backend.exceptions.services.chats.InvalidMessageCursorException;
 import messenger.backend.generated.model.Chat;
 import messenger.backend.generated.model.CreateChatRequest;
 import messenger.backend.generated.model.MessagePage;
@@ -58,18 +56,16 @@ public class ChatService {
     public MessagePage getChatMessages(Long chatId, Long beforeMessageId, Integer limit, long userId) {
         List<messenger.backend.dtos.Message> dbMessages;
         try {
-            if (!chatMembersRepository.getAllChatsOfTheMember(userId).contains(chatId)) {
-                throw new ChatAccessDeniedException("You are not a member of this chat");
-            }
-
             if (beforeMessageId == null) {
                 dbMessages = messagesRepository.getLastNMessagesInTheChat(limit + 1, chatId);
             } else {
+                // TODO: использовать метод, который напише ваня
+                //   dbMessages = messagesRepository.getNMessagesInTheChatBeforeMessage(limit + 1, chatId, beforeMessageId);
                 Message beforeMessage = messagesRepository.getMessageById(beforeMessageId);
                 dbMessages = messagesRepository.getNMessagesInTheChatBeforeMessage(limit + 1, chatId, beforeMessage);
             }
         } catch (NoSuchMessageException e) {
-            throw new InvalidMessageCursorException("beforeMessageId is invalid", e);
+            throw new DatabaseException("beforeMessageId is invalid", e);
         } catch (SQLException e) {
             throw new DatabaseException("GetChatMessages failed due to SQLException: ", e);
         }
