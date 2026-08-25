@@ -13,6 +13,7 @@ export interface RegisterPayload {
     username: string;
     login: string;
     password: string;
+    birthday: string;
 }
  
 export interface AuthResponse {

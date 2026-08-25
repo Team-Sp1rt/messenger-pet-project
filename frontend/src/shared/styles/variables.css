@@ -1,6 +1,6 @@
 @font-face {
-    font-family: 'Monteserrat';
-    src: url(../../assets/fonts/Monteserrat.ttf);
+    font-family: 'Montserrat';
+    src: url(../../assets/fonts/Montserrat.ttf);
 }
 
 :root {
@@ -8,7 +8,7 @@
     --bg-card: #212121;
     --bg-input: #2c2c2c;
     --text-primary: #e8e8e8;
-    --text-secondary: #9e9e9e;
+    --text-secondary: #aaaaaa;
     --accent: #1e7d6f;
     --accent-hover: #24968a;
 }

@@ -30,6 +30,10 @@
     color: var(--text-secondary);
 }
 
+.inputWrapper:nth-child(5) svg {
+    cursor: pointer;
+}
+
 .input {
     width: 100%;
     padding: 12px 40px;
@@ -38,6 +42,11 @@
     border-radius: 12px;
     color: var(--text-primary);
     box-sizing: border-box;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+    opacity: 0;
+    pointer-events: none;
 }
 
 .forgotLink {
