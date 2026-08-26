@@ -2,6 +2,8 @@ package messenger.backend.services;
 
 import messenger.backend.dtos.Message;
 import messenger.backend.dtos.User;
+import messenger.backend.exceptions.repostitories.InsertingException;
+import messenger.backend.exceptions.repostitories.ReposException;
 import messenger.backend.exceptions.repostitories.messages.NoSuchMessageException;
 import messenger.backend.exceptions.repostitories.users.NoSuchUserException;
 import messenger.backend.exceptions.services.DatabaseException;
@@ -10,12 +12,10 @@ import messenger.backend.repositories.ChatMembersRepository;
 import messenger.backend.repositories.ChatsRepository;
 import messenger.backend.repositories.MessagesRepository;
 import messenger.backend.repositories.UserRepository;
-import org.springframework.boot.webmvc.autoconfigure.WebMvcProperties;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
@@ -57,6 +57,8 @@ public class ChatService {
                     "NO_SUCH_USER", HttpStatus.NOT_FOUND,
                     "CreateChat failed due to NoSuchUserException: " + e.getMessage(), e
             );
+        } catch (InsertingException e) {
+            throw new DatabaseException("CreateChat failed due to InsertingException: " + e.getMessage(), e);
         }
     }
 

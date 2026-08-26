@@ -1,5 +1,6 @@
 package messenger.backend.services;
 
+import messenger.backend.exceptions.repostitories.users.NoSuchUserException;
 import messenger.backend.exceptions.services.DatabaseException;
 import messenger.backend.repositories.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,13 +28,13 @@ class UserServiceTest {
     }
 
     @Test
-    void searchUsers_returnsCorrectUserSummariesList() throws SQLException {
+    void searchUsers_returnsCorrectUserSummariesList() throws SQLException, NoSuchUserException {
         userService.searchUsers("moo", 13);
         verify(userRepository).getNUserSummariesOfUsersWithSubstringInUsername("moo", 13);
     }
 
     @Test
-    void searchUsers_unexpectedSQLException_throwsDatabaseException() throws SQLException {
+    void searchUsers_unexpectedSQLException_throwsDatabaseException() throws SQLException, NoSuchUserException {
         SQLException connectionException = new SQLException("connection refused", "08001");
 
         when(userRepository.getNUserSummariesOfUsersWithSubstringInUsername(anyString(), anyInt()))

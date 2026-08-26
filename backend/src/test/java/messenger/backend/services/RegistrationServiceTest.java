@@ -3,6 +3,7 @@ package messenger.backend.services;
 import messenger.backend.dtos.User;
 import messenger.backend.dtos.requests.RegistrationRequest;
 import messenger.backend.dtos.responses.AuthResponse;
+import messenger.backend.exceptions.repostitories.ReposException;
 import messenger.backend.exceptions.services.DatabaseException;
 import messenger.backend.exceptions.services.auth.LoginAlreadyExistsException;
 import messenger.backend.exceptions.services.auth.UsernameAlreadyExistsException;
@@ -48,7 +49,7 @@ class RegistrationServiceTest {
     }
 
     @Test
-    void registerUser_validData_createsUserAndReturnsAuthResponse() throws SQLException {
+    void registerUser_validData_createsUserAndReturnsAuthResponse() throws SQLException, ReposException {
         RegistrationRequest request = new RegistrationRequest("New User", "newuser", "password123", LocalDate.of(2000, 1, 1));
 
         when(authorisationRepository.insertNewAuthorisationReturnsUserID(eq("newuser"), anyString())).thenReturn(42L);
@@ -67,7 +68,7 @@ class RegistrationServiceTest {
     }
 
     @Test
-    void registerUser_passwordIsHashedBeforeSaving() throws SQLException {
+    void registerUser_passwordIsHashedBeforeSaving() throws SQLException, ReposException {
         RegistrationRequest request = new RegistrationRequest("New User", "newuser", "password123", LocalDate.of(2000, 1, 1));
 
         when(authorisationRepository.insertNewAuthorisationReturnsUserID(anyString(), anyString())).thenReturn(1L);
@@ -81,7 +82,7 @@ class RegistrationServiceTest {
     }
 
     @Test
-    void registerUser_duplicateLogin_throwsLoginAlreadyExistsException() throws SQLException {
+    void registerUser_duplicateLogin_throwsLoginAlreadyExistsException() throws SQLException, ReposException {
         RegistrationRequest request = new RegistrationRequest("New User", "existing-login", "password123", LocalDate.of(2000, 1, 1));
 
         when(authorisationRepository.insertNewAuthorisationReturnsUserID(anyString(), anyString()))
@@ -94,7 +95,7 @@ class RegistrationServiceTest {
     }
 
     @Test
-    void registerUser_duplicateUsername_throwsUsernameAlreadyExistsException() throws SQLException {
+    void registerUser_duplicateUsername_throwsUsernameAlreadyExistsException() throws SQLException, ReposException {
         RegistrationRequest request = new RegistrationRequest("Existing User", "new-login", "password123", LocalDate.of(2000, 1, 1));
 
         when(authorisationRepository.insertNewAuthorisationReturnsUserID(anyString(), anyString())).thenReturn(42L);
@@ -109,7 +110,7 @@ class RegistrationServiceTest {
     }
 
     @Test
-    void registerUser_authorisationDatabaseError_throwsDatabaseException() throws SQLException {
+    void registerUser_authorisationDatabaseError_throwsDatabaseException() throws SQLException, ReposException {
         RegistrationRequest request = new RegistrationRequest("New User", "newuser", "password123", LocalDate.of(2000, 1, 1));
 
         when(authorisationRepository.insertNewAuthorisationReturnsUserID(anyString(), anyString()))
@@ -122,7 +123,7 @@ class RegistrationServiceTest {
     }
 
     @Test
-    void registerUser_userDatabaseError_throwsDatabaseException() throws SQLException {
+    void registerUser_userDatabaseError_throwsDatabaseException() throws SQLException, ReposException {
         RegistrationRequest request = new RegistrationRequest("New User", "newuser", "password123", LocalDate.of(2000, 1, 1));
 
         when(authorisationRepository.insertNewAuthorisationReturnsUserID(anyString(), anyString())).thenReturn(42L);

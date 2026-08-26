@@ -3,6 +3,8 @@ package messenger.backend.services;
 import messenger.backend.dtos.User;
 import messenger.backend.dtos.requests.RegistrationRequest;
 import messenger.backend.dtos.responses.AuthResponse;
+import messenger.backend.exceptions.repostitories.InsertingException;
+import messenger.backend.exceptions.repostitories.ReposException;
 import messenger.backend.exceptions.services.DatabaseException;
 import messenger.backend.exceptions.services.auth.LoginAlreadyExistsException;
 import messenger.backend.exceptions.services.auth.UsernameAlreadyExistsException;
@@ -41,6 +43,8 @@ public class RegistrationService {
             }
 
             throw new DatabaseException("Failed to create authorisation", e);
+        } catch (InsertingException e) {
+            throw new DatabaseException("Failed to create authorisation due to ReposException: " + e.getMessage(), e);
         }
     }
 

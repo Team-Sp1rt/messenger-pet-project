@@ -1,6 +1,7 @@
 package messenger.backend.repositories;
 
 import messenger.backend.dtos.User;
+import messenger.backend.exceptions.repostitories.ReposException;
 import messenger.backend.exceptions.repostitories.users.NoSuchUserException;
 import messenger.backend.generated.model.UserSummary;
 import org.junit.jupiter.api.BeforeEach;
@@ -58,7 +59,7 @@ class UserRepositoryIntegrationTest {
     }
 
     @Test
-    void insertNewUser_thenGetUserByID_returnsCorrectData() throws SQLException, NoSuchUserException {
+    void insertNewUser_thenGetUserByID_returnsCorrectData() throws SQLException, ReposException {
         Long id = givenUserInDB("meow", LocalDate.of(2000, 1, 1));
 
         User user = userRepository.getUserByID(id);
@@ -73,7 +74,7 @@ class UserRepositoryIntegrationTest {
 
     //Фу
     @Test
-    void getNUserSummariesStartingWithSubstring_returnsCorrectSortedUserSummariesList() throws SQLException, NoSuchUserException {
+    void getNUserSummariesStartingWithSubstring_returnsCorrectSortedUserSummariesList() throws SQLException, ReposException {
         Long[] ids = new Long[5];
         ids[0] = givenUserInDB("meow", LocalDate.of(2000, 1, 1), "1");
         ids[1] = givenUserInDB("meow-meow", LocalDate.of(2000, 1, 1), "2");
@@ -98,7 +99,7 @@ class UserRepositoryIntegrationTest {
     }
 
     @Test
-    void changeUserBioByID_thenGetUserByID_returnsCorrectData() throws SQLException, NoSuchUserException {
+    void changeUserBioByID_thenGetUserByID_returnsCorrectData() throws SQLException, ReposException {
         Long id = givenUserInDB("meow", LocalDate.of(2000, 1, 1));
 
         userRepository.changeUserBioByID(id, "meow-meow-meow");
@@ -109,11 +110,11 @@ class UserRepositoryIntegrationTest {
     }
 
 
-    private Long givenUserInDB(String username, LocalDate birthday) throws SQLException {
+    private Long givenUserInDB(String username, LocalDate birthday) throws SQLException, ReposException {
         return givenUserInDB(username, birthday, "");
     }
 
-    private Long givenUserInDB(String username, LocalDate birthday, String loginDifference) throws SQLException {
+    private Long givenUserInDB(String username, LocalDate birthday, String loginDifference) throws SQLException, ReposException {
         Long id = authorisationRepository.insertNewAuthorisationReturnsUserID("meow" + loginDifference, "meow-meow");
         userRepository.insertNewUser(new User(id, username, "", birthday));
         return id;

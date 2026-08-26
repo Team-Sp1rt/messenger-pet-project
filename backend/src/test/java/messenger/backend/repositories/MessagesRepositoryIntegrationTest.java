@@ -3,6 +3,8 @@ package messenger.backend.repositories;
 import messenger.backend.dtos.Message;
 import messenger.backend.dtos.NewMessage;
 import messenger.backend.dtos.User;
+import messenger.backend.exceptions.repostitories.InsertingException;
+import messenger.backend.exceptions.repostitories.ReposException;
 import messenger.backend.exceptions.repostitories.messages.NoSuchMessageException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -70,7 +72,7 @@ public class MessagesRepositoryIntegrationTest {
 
     @Test
     void insertNewMessageReturnsMessage_returnsCorrectMessage()
-            throws SQLException {
+            throws SQLException, ReposException {
         List<Long> ids = givenFilledOtherTablesReturnsListOfIDs();
         String content = "meow";
 
@@ -83,7 +85,7 @@ public class MessagesRepositoryIntegrationTest {
 
     @Test
     void insertNewMessageReturnsMessage_insertingTwoMessages_returnsMessagesWithIncreasingIDsAndCreatedAt()
-            throws SQLException {
+            throws SQLException, ReposException {
         List<Long> ids = givenFilledOtherTablesReturnsListOfIDs();
         String content = "meow";
 
@@ -99,7 +101,7 @@ public class MessagesRepositoryIntegrationTest {
 
     @Test
     void getLastNMessagesInTheChat_ReturnsCorrectMessagesList()
-            throws SQLException {
+            throws SQLException, ReposException {
         List<Long> ids = givenFilledAllTablesReturnsListOfIDs();
 
         List<Message> messagesList = messagesRepository.getLastNMessagesInTheChat(10, ids.get(FIRST_CHAT));
@@ -109,7 +111,7 @@ public class MessagesRepositoryIntegrationTest {
 
     @Test
     void getNMessagesInTheChatBeforeMessage_ReturnsCorrectMessagesList()
-            throws SQLException {
+            throws SQLException, ReposException {
         List<Long> ids = givenFilledAllTablesReturnsListOfIDs();
 
         List<Message> messagesList = messagesRepository.getNMessagesInTheChatBeforeMessage(
@@ -122,7 +124,7 @@ public class MessagesRepositoryIntegrationTest {
 
     @Test
     void getUserIDByMessageID_ReturnsCorrectUserID()
-            throws SQLException, NoSuchMessageException {
+            throws SQLException, ReposException {
         List<Long> ids = givenFilledAllTablesReturnsListOfIDs();
 
         Long userID = messagesRepository.getUserIDByMessageID(ids.get(SECOND_MESSAGE));
@@ -137,7 +139,7 @@ public class MessagesRepositoryIntegrationTest {
 
     @Test
     void editMessageReturnsMessage_returnsCorrectMessage()
-            throws SQLException {
+            throws SQLException, ReposException {
         List<Long> ids = givenFilledAllTablesReturnsListOfIDs();
         String newContent = "woof";
 
@@ -153,7 +155,7 @@ public class MessagesRepositoryIntegrationTest {
 
     @Test
     void deleteMessageReturnsMessage_thenGetLastNMessagesInTheChat_returnsMessagesListWithoutDeletedOne()
-            throws SQLException {
+            throws SQLException, ReposException {
         List<Long> ids = givenFilledAllTablesReturnsListOfIDs();
 
         messagesRepository.deleteMessage(ids.get(SECOND_MESSAGE));
@@ -168,7 +170,7 @@ public class MessagesRepositoryIntegrationTest {
     }
 
     private List<Long> givenFilledAllTablesReturnsListOfIDs()
-            throws SQLException {
+            throws SQLException, ReposException {
         List<Long> ids = givenFilledOtherTablesReturnsListOfIDs();
         String content = "meow";
 
@@ -186,7 +188,7 @@ public class MessagesRepositoryIntegrationTest {
     }
 
     private List<Long> givenFilledOtherTablesReturnsListOfIDs()
-            throws SQLException {
+            throws SQLException, InsertingException {
         Long firstUserID = authorisationRepository.insertNewAuthorisationReturnsUserID("user1", "user1");
         userRepository.insertNewUser(new User(
                 firstUserID,

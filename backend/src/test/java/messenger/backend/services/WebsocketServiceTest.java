@@ -1,6 +1,7 @@
 package messenger.backend.services;
 
 import messenger.backend.dtos.*;
+import messenger.backend.exceptions.repostitories.messages.NoSuchMessageException;
 import messenger.backend.exceptions.services.WebsocketServiceException;
 import messenger.backend.messaging.WebSocketMessagePublisher;
 import messenger.backend.repositories.MessagesRepository;
@@ -161,7 +162,7 @@ public class WebsocketServiceTest {
     }
 
     @Test
-    void successfulEditMessage() throws SQLException {
+    void successfulEditMessage() throws SQLException, NoSuchMessageException {
 
         when(messagesRepository.getUserIDByMessageID(messageId)).thenReturn(userId);
         when(messagesRepository.editMessageReturnsMessage(messageId, content)).thenReturn(message);
@@ -186,7 +187,7 @@ public class WebsocketServiceTest {
 
 
     @Test
-    void failedCheckingUserRightsWhenEditMessage_AndThrowException() throws SQLException {
+    void failedCheckingUserRightsWhenEditMessage_AndThrowException() throws SQLException, NoSuchMessageException {
         long anotherId = 8888;
 
         when(messagesRepository.getUserIDByMessageID(messageId)).thenReturn(anotherId);
@@ -211,7 +212,7 @@ public class WebsocketServiceTest {
     }
 
     @Test
-    void failedSavingMessageInDataBaseWhenEditMessage_AndThrowException() throws SQLException {
+    void failedSavingMessageInDataBaseWhenEditMessage_AndThrowException() throws SQLException, NoSuchMessageException {
         SQLException sqlException = new SQLException("Couldn't add message due to unknown reason");
 
         when(messagesRepository.getUserIDByMessageID(messageId)).thenReturn(userId);
@@ -236,7 +237,7 @@ public class WebsocketServiceTest {
     }
 
     @Test
-    void failedPublishMessageWhenEditMessage_AndMakeLog() throws SQLException {
+    void failedPublishMessageWhenEditMessage_AndMakeLog() throws SQLException, NoSuchMessageException {
 
         MessagingException exception = new MessagingException("Failed publish");
 
@@ -259,7 +260,7 @@ public class WebsocketServiceTest {
     }
 
     @Test
-    void successfulDeleteMessage() throws SQLException {
+    void successfulDeleteMessage() throws SQLException, NoSuchMessageException {
 
         when(messagesRepository.getUserIDByMessageID(messageId)).thenReturn(userId);
 
@@ -278,7 +279,7 @@ public class WebsocketServiceTest {
 
 
     @Test
-    void failedCheckingUserRightsWhenDeleteMessage_AndThrowException() throws SQLException {
+    void failedCheckingUserRightsWhenDeleteMessage_AndThrowException() throws SQLException, NoSuchMessageException {
         long anotherId = 8888;
 
         when(messagesRepository.getUserIDByMessageID(messageId)).thenReturn(anotherId);
@@ -303,7 +304,7 @@ public class WebsocketServiceTest {
     }
 
     @Test
-    void failedDeleteMessageInDataBaseWhenDeleteMessage_AndThrowException() throws SQLException {
+    void failedDeleteMessageInDataBaseWhenDeleteMessage_AndThrowException() throws SQLException, NoSuchMessageException {
         SQLException sqlException = new SQLException("Couldn't delete message due to unknown reason");
 
         when(messagesRepository.getUserIDByMessageID(messageId)).thenReturn(userId);
@@ -329,7 +330,7 @@ public class WebsocketServiceTest {
     }
 
     @Test
-    void failedPublishMessageWhenDeleteMessage_AndMakeLog() throws SQLException {
+    void failedPublishMessageWhenDeleteMessage_AndMakeLog() throws SQLException, NoSuchMessageException {
 
         MessagingException exception = new MessagingException("Failed publish");
 

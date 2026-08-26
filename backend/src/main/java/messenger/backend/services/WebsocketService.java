@@ -1,6 +1,7 @@
 package messenger.backend.services;
 
 import messenger.backend.dtos.*;
+import messenger.backend.exceptions.repostitories.messages.NoSuchMessageException;
 import messenger.backend.exceptions.services.WebsocketServiceException;
 import messenger.backend.messaging.WebSocketMessagePublisher;
 import messenger.backend.repositories.MessagesRepository;
@@ -69,6 +70,11 @@ public class WebsocketService {
 
         } catch (SQLException e) {
             throw new WebsocketServiceException(WebSocketErrorCode.MESSAGE_OPERATION_FAILED, "Couldn't edit message due to unknown reason", e);
+        } catch (NoSuchMessageException e) {
+            throw new WebsocketServiceException(
+                    WebSocketErrorCode.MESSAGE_OPERATION_FAILED,
+                    "Couldn't edit message due to NoSuchMessageException: " + e.getMessage(), e
+            );
         }
 
         try {
@@ -96,6 +102,11 @@ public class WebsocketService {
 
         } catch (SQLException e) {
             throw new WebsocketServiceException(WebSocketErrorCode.MESSAGE_OPERATION_FAILED, "Couldn't delete message due to unknown reason", e);
+        } catch (NoSuchMessageException e) {
+            throw new WebsocketServiceException(
+                    WebSocketErrorCode.MESSAGE_OPERATION_FAILED,
+                    "Couldn't delete message due to NoSuchMessageException: " + e.getMessage(), e
+            );
         }
 
         try {

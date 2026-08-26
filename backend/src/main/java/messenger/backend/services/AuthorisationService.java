@@ -3,6 +3,7 @@ package messenger.backend.services;
 import messenger.backend.dtos.User;
 import messenger.backend.dtos.requests.AuthorisationRequest;
 import messenger.backend.dtos.responses.AuthResponse;
+import messenger.backend.exceptions.repostitories.ReposException;
 import messenger.backend.exceptions.repostitories.users.NoSuchUserException;
 import messenger.backend.exceptions.services.DatabaseException;
 import messenger.backend.exceptions.services.auth.InvalidCredentialsException;
@@ -40,7 +41,7 @@ public class AuthorisationService {
             String passwordHash = authorisationRepository.getPasswordHashByLogin(login);
 
             return new UserCredentials(userId, passwordHash);
-        } catch (SQLException e) {
+        } catch (SQLException | NoSuchUserException e) {
             throw new InvalidCredentialsException("Invalid login or password", e);
         }
     }

@@ -2,6 +2,7 @@ package messenger.backend.services;
 
 import messenger.backend.dtos.Message;
 import messenger.backend.dtos.User;
+import messenger.backend.exceptions.repostitories.ReposException;
 import messenger.backend.exceptions.repostitories.messages.NoSuchMessageException;
 import messenger.backend.exceptions.repostitories.users.NoSuchUserException;
 import messenger.backend.exceptions.services.DatabaseException;
@@ -57,7 +58,7 @@ class ChatServiceTest {
     // для 3 методов класса
 
     @Test
-    void createChat_validRequest_returnsCreatedChat() throws SQLException, NoSuchUserException {
+    void createChat_validRequest_returnsCreatedChat() throws SQLException, ReposException {
 
         long creatorId = 1L;
         long memberId = 2L;

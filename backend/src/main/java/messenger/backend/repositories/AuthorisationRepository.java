@@ -1,5 +1,8 @@
 package messenger.backend.repositories;
 
+import messenger.backend.exceptions.repostitories.InsertingException;
+import messenger.backend.exceptions.repostitories.ReposException;
+import messenger.backend.exceptions.repostitories.users.NoSuchUserException;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Repository;
 
@@ -17,7 +20,7 @@ public class AuthorisationRepository {
         this.dataSource = dataSource;
     }
 
-    public Long insertNewAuthorisationReturnsUserID(String login, String passwordHash) throws SQLException {
+    public Long insertNewAuthorisationReturnsUserID(String login, String passwordHash) throws SQLException, InsertingException {
         String sql = """
             INSERT INTO authorisation(login, password_hash)
             VALUES(?, ?)
@@ -33,7 +36,7 @@ public class AuthorisationRepository {
                 long id;
 
                 if(!resultSet.next()) {
-                    throw new SQLException("Couldn't add new authorisation data due to unknown reason");
+                    throw new InsertingException("Couldn't add new authorisation data due to unknown reason");
                 }
 
                 id = resultSet.getLong("id");
@@ -45,7 +48,7 @@ public class AuthorisationRepository {
         }
     }
 
-    public String getPasswordHashByLogin(String login) throws SQLException {
+    public String getPasswordHashByLogin(String login) throws SQLException, NoSuchUserException {
         String sql = """
             SELECT password_hash FROM authorisation
             WHERE login = ?
@@ -60,7 +63,7 @@ public class AuthorisationRepository {
                 String passwordHash;
 
                 if(!resultSet.next()) {
-                    throw new SQLException("Couldn't get password hash due to unknown reason");
+                    throw new NoSuchUserException("There is no user with specified login");
                 }
 
                 passwordHash = resultSet.getString("password_hash");
@@ -72,7 +75,7 @@ public class AuthorisationRepository {
         }
     }
 
-    public Long getUserIDByLogin(String login) throws SQLException {
+    public Long getUserIDByLogin(String login) throws SQLException, NoSuchUserException {
         String sql = """
             SELECT id FROM authorisation
             WHERE login = ?
@@ -86,7 +89,7 @@ public class AuthorisationRepository {
                 long id;
 
                 if(!resultSet.next()) {
-                    throw new SQLException("Couldn't get user id due to unknown reason");
+                    throw new NoSuchUserException("There is no user with specified login");
                 }
 
                 id = resultSet.getLong("id");
