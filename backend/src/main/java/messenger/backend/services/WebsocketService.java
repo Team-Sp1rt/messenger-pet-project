@@ -74,7 +74,7 @@ public class WebsocketService {
         try {
             messagePublisher.publishUpdated(message);
         } catch (MessagingException e) {
-            log.error("Failed to publish MESSAGE_CREATED: chatId={}, messageId={}",
+            log.error("Failed to publish MESSAGE_UPDATED: chatId={}, messageId={}",
                     chatId,
                     messageId, e);
         }
@@ -101,7 +101,7 @@ public class WebsocketService {
         try {
             messagePublisher.publishDeleted(chatId, messageId);
         } catch (MessagingException e) {
-            log.error("Failed to publish MESSAGE_CREATED: chatId={}, messageId={}",
+            log.error("Failed to publish MESSAGE_DELETED: chatId={}, messageId={}",
                     chatId,
                     messageId, e);
         }
