@@ -19,6 +19,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.sql.SQLException;
@@ -140,7 +141,7 @@ public class WebsocketServiceTest {
     @Test
     void failedPublishMessageWhenSendMessage_AndMakeLog() throws SQLException {
 
-        RuntimeException exception = new RuntimeException("Failed publish");
+        MessagingException exception = new MessagingException("Failed publish");
 
         when(messagesRepository.insertNewMessageReturnsMessage(any(NewMessage.class))).thenReturn(message);
 
@@ -237,7 +238,7 @@ public class WebsocketServiceTest {
     @Test
     void failedPublishMessageWhenEditMessage_AndMakeLog() throws SQLException {
 
-        RuntimeException exception = new RuntimeException("Failed publish");
+        MessagingException exception = new MessagingException("Failed publish");
 
         when(messagesRepository.editMessageReturnsMessage(messageId, content)).thenReturn(message);
         when(messagesRepository.getUserIDByMessageID(messageId)).thenReturn(userId);
@@ -330,7 +331,7 @@ public class WebsocketServiceTest {
     @Test
     void failedPublishMessageWhenDeleteMessage_AndMakeLog() throws SQLException {
 
-        RuntimeException exception = new RuntimeException("Failed publish");
+        MessagingException exception = new MessagingException("Failed publish");
 
         doThrow(exception)
                 .when(messagePublisher).publishDeleted(chatId, messageId);

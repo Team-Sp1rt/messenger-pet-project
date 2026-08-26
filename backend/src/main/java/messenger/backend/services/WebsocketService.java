@@ -6,6 +6,7 @@ import messenger.backend.messaging.WebSocketMessagePublisher;
 import messenger.backend.repositories.MessagesRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.messaging.MessagingException;
 import org.springframework.stereotype.Service;
 
 import java.sql.SQLException;
@@ -43,8 +44,10 @@ public class WebsocketService {
 
         try {
             messagePublisher.publishCreated(message);
-        } catch (RuntimeException e) {
-            log.error("Failed to publish WebSocket event", e);
+        } catch (MessagingException e) {
+            log.error("Failed to publish MESSAGE_CREATED: chatId={}, messageId={}",
+                    chatId,
+                    message.id(), e);
         }
 
     }
@@ -70,8 +73,10 @@ public class WebsocketService {
 
         try {
             messagePublisher.publishUpdated(message);
-        } catch (RuntimeException e) {
-            log.error("Failed to publish WebSocket event", e);
+        } catch (MessagingException e) {
+            log.error("Failed to publish MESSAGE_CREATED: chatId={}, messageId={}",
+                    chatId,
+                    messageId, e);
         }
 
     }
@@ -95,8 +100,10 @@ public class WebsocketService {
 
         try {
             messagePublisher.publishDeleted(chatId, messageId);
-        } catch (RuntimeException e) {
-            log.error("Failed to publish WebSocket event", e);
+        } catch (MessagingException e) {
+            log.error("Failed to publish MESSAGE_CREATED: chatId={}, messageId={}",
+                    chatId,
+                    messageId, e);
         }
 
     }
