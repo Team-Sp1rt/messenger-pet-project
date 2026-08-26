@@ -14,6 +14,7 @@ import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
 
+import java.security.Principal;
 import java.util.List;
 
 @Component
@@ -63,6 +64,21 @@ public class StompJwtAuthenticationInterceptor implements ChannelInterceptor {
             }
 
             JwtAuthenticationToken authentication = new JwtAuthenticationToken(jwt, List.of(), userId);
+
+            if (command == StompCommand.CONNECT) {
+                accessor.setUser(authentication);
+                return message;
+            }
+
+            Principal connectedUser = accessor.getUser();
+
+            if (connectedUser == null) {
+                throw unauthorized("WebSocket session is not authenticated");
+            }
+
+            if (!userId.equals(connectedUser.getName())) {
+                throw unauthorized("JWT does not belong to this WebSocket session");
+            }
 
             accessor.setUser(authentication);
 
