@@ -1,46 +1,53 @@
 package messenger.backend.services;
 
 import messenger.backend.dtos.*;
-import messenger.backend.exceptions.repostitories.messages.NoSuchMessageException;
 import messenger.backend.exceptions.services.WebsocketServiceException;
-import messenger.backend.repositories.ChatMembersRepository;
+import messenger.backend.messaging.WebSocketMessagePublisher;
 import messenger.backend.repositories.MessagesRepository;
-import messenger.backend.generated.model.Message;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.messaging.MessagingException;
 import org.springframework.stereotype.Service;
 
 import java.sql.SQLException;
-import java.time.ZoneOffset;
 
 
 @Service
 public class WebsocketService {
+    private static final Logger log = LoggerFactory.getLogger(WebsocketService.class);
 
     private final ChatMembershipService chatMembershipService;
     private final MessagesRepository messagesRepository;
 
-    private final SimpMessagingTemplate simpMessagingTemplate;
+    private final WebSocketMessagePublisher messagePublisher;
 
     public WebsocketService(ChatMembershipService chatMembershipService,
                             MessagesRepository mesRepository,
-                            SimpMessagingTemplate simpMessagingTemplate) {
+                            WebSocketMessagePublisher messagePublisher) {
         this.chatMembershipService = chatMembershipService;
         this.messagesRepository = mesRepository;
-        this.simpMessagingTemplate = simpMessagingTemplate;
+        this.messagePublisher = messagePublisher;
     }
 
     public void sendMessage(long chatId, long userId,
                             String content) throws WebsocketServiceException {
 
         chatMembershipService.checkUserInChat(userId, chatId);
+        messenger.backend.dtos.Message message;
 
         try {
-            messenger.backend.dtos.Message message = messagesRepository.insertNewMessageReturnsMessage(new NewMessage(chatId, userId, content));
-            simpMessagingTemplate.convertAndSend("/topic/chats/" + chatId + "/events",
-                    new MessageChangedEvent(ChatEventType.MESSAGE_CREATED,
-                            convertToMessage(message)));
+            message = messagesRepository.insertNewMessageReturnsMessage(new NewMessage(chatId, userId, content));
+
         } catch (SQLException e) {
-            throw new WebsocketServiceException(WebSocketErrorCode.MESSAGE_OPERATION_FAILED, e.getMessage());
+            throw new WebsocketServiceException(WebSocketErrorCode.MESSAGE_OPERATION_FAILED, "Couldn't send message due to unknown reason", e);
+        }
+
+        try {
+            messagePublisher.publishCreated(message);
+        } catch (MessagingException e) {
+            log.error("Failed to publish MESSAGE_CREATED: chatId={}, messageId={}",
+                    chatId,
+                    message.id(), e);
         }
 
     }
@@ -48,21 +55,28 @@ public class WebsocketService {
     public void editMessage(long chatId, long userId,
                             long messageId,
                             String content) throws WebsocketServiceException {
-        try {
 
-            chatMembershipService.checkUserInChat(userId, chatId);
+        chatMembershipService.checkUserInChat(userId, chatId);
+        messenger.backend.dtos.Message message;
+
+        try {
 
             if (messagesRepository.getUserIDByMessageID(messageId)!=userId) {
                 throw new WebsocketServiceException(WebSocketErrorCode.MESSAGE_ACCESS_DENIED, "You can't edit this message");
             }
 
-            messenger.backend.dtos.Message message = messagesRepository.editMessageReturnsMessage(messageId, content);
-            simpMessagingTemplate.convertAndSend("/topic/chats/" + chatId + "/events",
-                    new MessageChangedEvent(ChatEventType.MESSAGE_UPDATED,
-                            convertToMessage(message)));
+            message = messagesRepository.editMessageReturnsMessage(messageId, content);
 
-        } catch (SQLException | NoSuchMessageException e) {
-            throw new WebsocketServiceException(WebSocketErrorCode.MESSAGE_NOT_FOUND, "We can't found your message for edit");
+        } catch (SQLException e) {
+            throw new WebsocketServiceException(WebSocketErrorCode.MESSAGE_OPERATION_FAILED, "Couldn't edit message due to unknown reason", e);
+        }
+
+        try {
+            messagePublisher.publishUpdated(message);
+        } catch (MessagingException e) {
+            log.error("Failed to publish MESSAGE_UPDATED: chatId={}, messageId={}",
+                    chatId,
+                    messageId, e);
         }
 
     }
@@ -79,27 +93,19 @@ public class WebsocketService {
             }
 
             messagesRepository.deleteMessage(messageId);
-            simpMessagingTemplate.convertAndSend("/topic/chats/" + chatId + "/events",
-                    new MessageDeletedEvent(ChatEventType.MESSAGE_DELETED,
-                                    chatId,
-                                    messageId));
 
         } catch (SQLException e) {
-            throw new WebsocketServiceException(WebSocketErrorCode.MESSAGE_OPERATION_FAILED, "Couldn't delete message due to unknown reason");
-        } catch (NoSuchMessageException e) {
-            throw new WebsocketServiceException(WebSocketErrorCode.MESSAGE_NOT_FOUND, e.getMessage());
+            throw new WebsocketServiceException(WebSocketErrorCode.MESSAGE_OPERATION_FAILED, "Couldn't delete message due to unknown reason", e);
         }
-    }
 
-    private Message convertToMessage(messenger.backend.dtos.Message message) {
-        return new Message(
-                message.id(),
-                message.chatID(),
-                message.userID(),
-                message.content(),
-                message.createdAt().
-                        toInstant().
-                        atOffset(ZoneOffset.UTC));
+        try {
+            messagePublisher.publishDeleted(chatId, messageId);
+        } catch (MessagingException e) {
+            log.error("Failed to publish MESSAGE_DELETED: chatId={}, messageId={}",
+                    chatId,
+                    messageId, e);
+        }
+
     }
 
 }

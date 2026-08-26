@@ -1,11 +1,9 @@
 package messenger.backend.services;
 
 import messenger.backend.dtos.*;
-import messenger.backend.exceptions.repostitories.messages.NoSuchMessageException;
 import messenger.backend.exceptions.services.WebsocketServiceException;
-import messenger.backend.repositories.ChatMembersRepository;
+import messenger.backend.messaging.WebSocketMessagePublisher;
 import messenger.backend.repositories.MessagesRepository;
-import messenger.backend.generated.model.Message;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,12 +17,12 @@ import static org.mockito.Mockito.*;
 
 import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.time.ZoneOffset;
-import java.util.Set;
 
 @ExtendWith(MockitoExtension.class)
 public class WebsocketServiceTest {
@@ -46,6 +44,9 @@ public class WebsocketServiceTest {
     @Mock
     private messenger.backend.dtos.Message message;
 
+    @Mock
+    WebSocketMessagePublisher messagePublisher;
+
     @InjectMocks
     WebsocketService websocketService;
 
@@ -59,20 +60,13 @@ public class WebsocketServiceTest {
 
     @Test
     void successfulSaveAndSendMessage() throws SQLException {
-        Set<Long> testSet = Set.of(userId);
-        Timestamp timestamp = Timestamp.valueOf("2026-08-23 17:30:00");
 
         when(messagesRepository.insertNewMessageReturnsMessage(any(NewMessage.class))).thenReturn(message);
-        when(message.id()).thenReturn(messageId);
-        when(message.chatID()).thenReturn(chatId);
-        when(message.userID()).thenReturn(userId);
-        when(message.content()).thenReturn(content);
-        when(message.createdAt()).thenReturn(timestamp);
 
         websocketService.sendMessage(chatId, userId, content);
 
-        ArgumentCaptor<MessageChangedEvent> captorMessageEvent =
-                ArgumentCaptor.forClass(MessageChangedEvent.class);
+        ArgumentCaptor<messenger.backend.dtos.Message> captorMessageEvent =
+                ArgumentCaptor.forClass(messenger.backend.dtos.Message.class);
         ArgumentCaptor<NewMessage> captorNewMessage =
                 ArgumentCaptor.forClass(NewMessage.class);
 
@@ -81,8 +75,8 @@ public class WebsocketServiceTest {
         verify(messagesRepository, times(1))
                 .insertNewMessageReturnsMessage(captorNewMessage.capture());
 
-        verify(simpMessagingTemplate, times(1))
-                .convertAndSend(eq("/topic/chats/" + chatId + "/events"), captorMessageEvent.capture());
+        verify(messagePublisher, times(1))
+                .publishCreated(captorMessageEvent.capture());
 
         NewMessage newMessage = captorNewMessage.getValue();
 
@@ -90,22 +84,14 @@ public class WebsocketServiceTest {
         assertEquals(userId, newMessage.userID());
         assertEquals(content, newMessage.content());
 
-        MessageChangedEvent event = captorMessageEvent.getValue();
-        Message messageResponse = event.message();
+        messenger.backend.dtos.Message event = captorMessageEvent.getValue();
 
-        assertEquals(ChatEventType.MESSAGE_CREATED, event.type());
-        assertEquals(messageId, messageResponse.getId());
-        assertEquals(chatId, messageResponse.getChatId());
-        assertEquals(userId, messageResponse.getUserId());
-        assertEquals(content, messageResponse.getContent());
-        assertEquals(timestamp.toInstant().atOffset(ZoneOffset.UTC), messageResponse.getCreatedAt());
+        assertEquals(message, event);
     }
 
 
     @Test
     void failedCheckingUserInChat_AndThrowException() throws SQLException {
-        long anotherId = 8888;
-        Set<Long> testSet = Set.of(anotherId);
 
         doThrow(new WebsocketServiceException(
                 WebSocketErrorCode.CHAT_ACCESS_DENIED,
@@ -130,7 +116,7 @@ public class WebsocketServiceTest {
 
     @Test
     void failedSavingMessageWhenSendMessage_AndThrowException() throws SQLException {
-        Set<Long> testSet = Set.of(userId);
+
         SQLException sqlException = new SQLException("Couldn't add message due to unknown reason");
 
         when(messagesRepository.insertNewMessageReturnsMessage(any(NewMessage.class))).thenThrow(sqlException);
@@ -140,52 +126,62 @@ public class WebsocketServiceTest {
                 () -> websocketService.sendMessage(chatId, userId, content));
 
         assertEquals(WebSocketErrorCode.MESSAGE_OPERATION_FAILED, websocketServiceException.getCode());
-        assertEquals("Couldn't add message due to unknown reason", websocketServiceException.getMessage());
+        assertEquals("Couldn't send message due to unknown reason", websocketServiceException.getMessage());
 
         verify(chatMembershipService).checkUserInChat(userId, chatId);
 
         verify(messagesRepository, times(1))
                 .insertNewMessageReturnsMessage(any(NewMessage.class));
 
-        verify(simpMessagingTemplate, never())
-                .convertAndSend(any(), any(MessageChangedEvent.class));
+        verify(messagePublisher, never())
+                .publishCreated(any());
+
+    }
+
+    @Test
+    void failedPublishMessageWhenSendMessage_AndMakeLog() throws SQLException {
+
+        MessagingException exception = new MessagingException("Failed publish");
+
+        when(messagesRepository.insertNewMessageReturnsMessage(any(NewMessage.class))).thenReturn(message);
+
+        doThrow(exception)
+                .when(messagePublisher).publishCreated(message);
+
+        websocketService.sendMessage(chatId, userId, content);
+
+        verify(chatMembershipService).checkUserInChat(userId, chatId);
+
+        verify(messagesRepository, times(1))
+                .insertNewMessageReturnsMessage(any(NewMessage.class));
+
+        verify(messagePublisher, times(1))
+                .publishCreated(message);
 
     }
 
     @Test
     void successfulEditMessage() throws SQLException {
-        Timestamp timestamp = Timestamp.valueOf("2026-08-23 17:30:00");
 
         when(messagesRepository.getUserIDByMessageID(messageId)).thenReturn(userId);
         when(messagesRepository.editMessageReturnsMessage(messageId, content)).thenReturn(message);
-        when(message.id()).thenReturn(messageId);
-        when(message.chatID()).thenReturn(chatId);
-        when(message.content()).thenReturn(content);
-        when(message.userID()).thenReturn(userId);
-        when(message.createdAt()).thenReturn(timestamp);
 
         websocketService.editMessage(chatId, userId, messageId, content);
 
-        ArgumentCaptor<MessageChangedEvent> captor =
-                ArgumentCaptor.forClass(MessageChangedEvent.class);
+        ArgumentCaptor<messenger.backend.dtos.Message> captor =
+                ArgumentCaptor.forClass(messenger.backend.dtos.Message.class);
         verify(messagesRepository, times(1))
                 .getUserIDByMessageID(messageId);
 
         verify(messagesRepository, times(1))
                 .editMessageReturnsMessage(messageId, content);
 
-        verify(simpMessagingTemplate, times(1))
-                .convertAndSend(eq("/topic/chats/" + chatId + "/events"), captor.capture());
+        verify(messagePublisher, times(1))
+                .publishUpdated(captor.capture());
 
-        MessageChangedEvent event = captor.getValue();
-        Message messageResponse = event.message();
+        messenger.backend.dtos.Message event = captor.getValue();
 
-        assertEquals(ChatEventType.MESSAGE_UPDATED, event.type());
-        assertEquals(messageId, messageResponse.getId());
-        assertEquals(chatId, messageResponse.getChatId());
-        assertEquals(userId, messageResponse.getUserId());
-        assertEquals(content, messageResponse.getContent());
-        assertEquals(timestamp.toInstant().atOffset(ZoneOffset.UTC), messageResponse.getCreatedAt());
+        assertEquals(message, event);
     }
 
 
@@ -209,8 +205,8 @@ public class WebsocketServiceTest {
         verify(messagesRepository, never())
                 .editMessageReturnsMessage(any(), any());
 
-        verify(simpMessagingTemplate, never())
-                .convertAndSend(any(), any(MessageChangedEvent.class));
+        verify(messagePublisher, never())
+                .publishCreated(any());
 
     }
 
@@ -225,8 +221,8 @@ public class WebsocketServiceTest {
         WebsocketServiceException websocketServiceException = assertThrows(WebsocketServiceException.class,
                 () -> websocketService.editMessage(chatId, userId, messageId, content));
 
-        assertEquals(WebSocketErrorCode.MESSAGE_NOT_FOUND, websocketServiceException.getCode());
-        assertEquals("We can't found your message for edit", websocketServiceException.getMessage());
+        assertEquals(WebSocketErrorCode.MESSAGE_OPERATION_FAILED, websocketServiceException.getCode());
+        assertEquals("Couldn't edit message due to unknown reason", websocketServiceException.getMessage());
 
         verify(messagesRepository, times(1))
                 .getUserIDByMessageID(messageId);
@@ -234,31 +230,31 @@ public class WebsocketServiceTest {
         verify(messagesRepository, times(1))
                 .editMessageReturnsMessage(messageId, content);
 
-        verify(simpMessagingTemplate, never())
-                .convertAndSend(any(), any(MessageChangedEvent.class));
+        verify(messagePublisher, never())
+                .publishCreated(any());
 
     }
 
     @Test
-    void failedCheckingMessageInChatWhenEditMessage_AndThrowException() throws SQLException {
-        NoSuchMessageException messageException = new NoSuchMessageException("Couldn't find message with specified id");
+    void failedPublishMessageWhenEditMessage_AndMakeLog() throws SQLException {
 
-        when(messagesRepository.getUserIDByMessageID(messageId)).thenThrow(messageException);
+        MessagingException exception = new MessagingException("Failed publish");
 
-        WebsocketServiceException websocketServiceException = assertThrows(WebsocketServiceException.class,
-                () -> websocketService.editMessage(chatId, userId, messageId, content));
+        when(messagesRepository.editMessageReturnsMessage(messageId, content)).thenReturn(message);
+        when(messagesRepository.getUserIDByMessageID(messageId)).thenReturn(userId);
 
-        assertEquals(WebSocketErrorCode.MESSAGE_NOT_FOUND, websocketServiceException.getCode());
-        assertEquals("We can't found your message for edit", websocketServiceException.getMessage());
+        doThrow(exception)
+                .when(messagePublisher).publishUpdated(message);
+
+        websocketService.editMessage(chatId, userId, messageId, content);
+
+        verify(chatMembershipService).checkUserInChat(userId, chatId);
 
         verify(messagesRepository, times(1))
-                .getUserIDByMessageID(messageId);
-
-        verify(messagesRepository, never())
                 .editMessageReturnsMessage(messageId, content);
 
-        verify(simpMessagingTemplate, never())
-                .convertAndSend(any(), any(MessageChangedEvent.class));
+        verify(messagePublisher, times(1))
+                .publishUpdated(message);
 
     }
 
@@ -269,22 +265,14 @@ public class WebsocketServiceTest {
 
         websocketService.deleteMessage(chatId, userId, messageId);
 
-        ArgumentCaptor<MessageDeletedEvent> captor =
-                ArgumentCaptor.forClass(MessageDeletedEvent.class);
         verify(messagesRepository, times(1))
                 .getUserIDByMessageID(messageId);
 
         verify(messagesRepository, times(1))
                 .deleteMessage(messageId);
 
-        verify(simpMessagingTemplate, times(1))
-                .convertAndSend(eq("/topic/chats/" + chatId + "/events"), captor.capture());
-
-        MessageDeletedEvent event = captor.getValue();
-
-        assertEquals(ChatEventType.MESSAGE_DELETED, event.type());
-        assertEquals(messageId, event.messageId());
-        assertEquals(chatId, event.chatId());
+        verify(messagePublisher, times(1))
+                .publishDeleted(chatId, messageId);
 
     }
 
@@ -309,8 +297,8 @@ public class WebsocketServiceTest {
         verify(messagesRepository, never())
                 .deleteMessage(any());
 
-        verify(simpMessagingTemplate, never())
-                .convertAndSend(any(), any(MessageDeletedEvent.class));
+        verify(messagePublisher, never())
+                .publishCreated(any());
 
     }
 
@@ -335,31 +323,30 @@ public class WebsocketServiceTest {
         verify(messagesRepository, times(1))
                 .deleteMessage(messageId);
 
-        verify(simpMessagingTemplate, never())
-                .convertAndSend(any(), any(MessageDeletedEvent.class));
+        verify(messagePublisher, never())
+                .publishCreated(any());
 
     }
 
     @Test
-    void failedCheckingMessageInChatWhenDeleteMessage_AndThrowException() throws SQLException {
-        NoSuchMessageException messageException = new NoSuchMessageException("Couldn't find message with specified id");
+    void failedPublishMessageWhenDeleteMessage_AndMakeLog() throws SQLException {
 
-        when(messagesRepository.getUserIDByMessageID(messageId)).thenThrow(messageException);
+        MessagingException exception = new MessagingException("Failed publish");
 
-        WebsocketServiceException websocketServiceException = assertThrows(WebsocketServiceException.class,
-                () -> websocketService.deleteMessage(chatId, userId, messageId));
+        doThrow(exception)
+                .when(messagePublisher).publishDeleted(chatId, messageId);
+        when(messagesRepository.getUserIDByMessageID(messageId)).thenReturn(userId);
 
-        assertEquals(WebSocketErrorCode.MESSAGE_NOT_FOUND, websocketServiceException.getCode());
-        assertEquals("Couldn't find message with specified id", websocketServiceException.getMessage());
+        websocketService.deleteMessage(chatId, userId, messageId);
+
+        verify(chatMembershipService).checkUserInChat(userId, chatId);
 
         verify(messagesRepository, times(1))
-                .getUserIDByMessageID(messageId);
+                .deleteMessage(messageId);
 
-        verify(messagesRepository, never())
-                .editMessageReturnsMessage(messageId, content);
-
-        verify(simpMessagingTemplate, never())
-                .convertAndSend(any(), any(MessageChangedEvent.class));
+        verify(messagePublisher, times(1))
+                .publishDeleted(chatId, messageId);
 
     }
+
 }
