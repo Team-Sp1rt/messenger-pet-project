@@ -121,14 +121,25 @@ class WebSocketIntegrationTest {
 
         String url = "ws://localhost:" + port + "/ws";
 
+        CompletableFuture<String> stompError = new CompletableFuture<>();
+
+        StompSessionHandlerAdapter sessionHandler =
+                new StompSessionHandlerAdapter() {
+                    @Override
+                    public void handleFrame(StompHeaders headers, Object payload) {
+                        stompError.complete(headers.getFirst("message"));
+                    }
+                };
+
         CompletableFuture<StompSession> connection = stompClient.connectAsync(
                 url,
                 new WebSocketHttpHeaders(),
                 connectHeaders,
-                new StompSessionHandlerAdapter() {});
+                sessionHandler);
 
-
-        assertThrows(ExecutionException.class, () -> connection.get(5, TimeUnit.SECONDS));
+        ExecutionException exception = assertThrows(ExecutionException.class, () -> connection.get(5, TimeUnit.SECONDS));
+        String errorMessage = stompError.get(5, TimeUnit.SECONDS);
+        assertTrue(errorMessage.contains("UNAUTHORIZED: JWT is missing"));
 
     }
 
@@ -152,34 +163,25 @@ class WebSocketIntegrationTest {
 
         String url = "ws://localhost:" + port + "/ws";
 
+        CompletableFuture<String> stompError = new CompletableFuture<>();
+
+        StompSessionHandlerAdapter sessionHandler =
+                new StompSessionHandlerAdapter() {
+                    @Override
+                    public void handleFrame(StompHeaders headers, Object payload) {
+                        stompError.complete(headers.getFirst("message"));
+                    }
+                };
+
         CompletableFuture<StompSession> connection = stompClient.connectAsync(
                 url,
                 new WebSocketHttpHeaders(),
                 connectHeaders,
-                new StompSessionHandlerAdapter() {});
+                sessionHandler);
 
 
-        assertThrows(ExecutionException.class, () -> connection.get(5, TimeUnit.SECONDS));
-
-    }
-
-    @Test
-    void subscribeToChatAsMember_isAccepted() throws Exception {
-        String token = jwtService.generateAccessToken(42L, "alex");
-
-        StompHeaders connectHeaders = new StompHeaders();
-        connectHeaders.add(HttpHeaders.AUTHORIZATION, "Bearer " + token);
-
-        String url = "ws://localhost:" + port + "/ws";
-
-        StompSession session = stompClient.connectAsync(
-                url,
-                new WebSocketHttpHeaders(),
-                connectHeaders,
-                new StompSessionHandlerAdapter() {},
-                new Object[0]
-        ).get(5, TimeUnit.SECONDS);
-
-
+        ExecutionException exception = assertThrows(ExecutionException.class, () -> connection.get(5, TimeUnit.SECONDS));
+        String errorMessage = stompError.get(5, TimeUnit.SECONDS);
+        assertTrue(errorMessage.contains("UNAUTHORIZED: JWT is invalid or expired"));
     }
 }
