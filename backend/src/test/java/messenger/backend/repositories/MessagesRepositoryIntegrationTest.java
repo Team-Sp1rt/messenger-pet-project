@@ -122,7 +122,7 @@ public class MessagesRepositoryIntegrationTest {
 
     @Test
     void getUserIDByMessageID_ReturnsCorrectUserID()
-            throws SQLException {
+            throws SQLException, NoSuchMessageException {
         List<Long> ids = givenFilledAllTablesReturnsListOfIDs();
 
         Long userID = messagesRepository.getUserIDByMessageID(ids.get(SECOND_MESSAGE));
@@ -131,8 +131,7 @@ public class MessagesRepositoryIntegrationTest {
     }
 
     @Test
-    void getUserIDByMessageID_noMessageWithSuchID_ThrowsNoSuchMessageException()
-            throws SQLException {
+    void getUserIDByMessageID_noMessageWithSuchID_ThrowsNoSuchMessageException() {
         assertThrows(NoSuchMessageException.class, () -> messagesRepository.getUserIDByMessageID(13L));
     }
 

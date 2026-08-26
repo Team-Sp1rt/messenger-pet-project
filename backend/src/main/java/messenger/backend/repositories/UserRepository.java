@@ -39,7 +39,7 @@ public class UserRepository {
         }
     }
 
-    public User getUserByID(Long id) throws SQLException {
+    public User getUserByID(Long id) throws SQLException, NoSuchUserException {
         String sql = """
             SELECT * FROM users
             WHERE id = ?;
@@ -62,7 +62,7 @@ public class UserRepository {
     }
 
     public List<UserSummary> getNUserSummariesOfUsersWithSubstringInUsername(String substring, Integer n)
-            throws SQLException {
+            throws SQLException, NoSuchUserException {
         String sql = """
             SELECT * FROM users
             WHERE username ILIKE ?

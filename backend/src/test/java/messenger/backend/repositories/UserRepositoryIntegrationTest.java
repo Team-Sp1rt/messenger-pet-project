@@ -58,7 +58,7 @@ class UserRepositoryIntegrationTest {
     }
 
     @Test
-    void insertNewUser_thenGetUserByID_returnsCorrectData() throws SQLException {
+    void insertNewUser_thenGetUserByID_returnsCorrectData() throws SQLException, NoSuchUserException {
         Long id = givenUserInDB("meow", LocalDate.of(2000, 1, 1));
 
         User user = userRepository.getUserByID(id);
@@ -73,7 +73,7 @@ class UserRepositoryIntegrationTest {
 
     //Фу
     @Test
-    void getNUserSummariesStartingWithSubstring_returnsCorrectSortedUserSummariesList() throws SQLException {
+    void getNUserSummariesStartingWithSubstring_returnsCorrectSortedUserSummariesList() throws SQLException, NoSuchUserException {
         Long[] ids = new Long[5];
         ids[0] = givenUserInDB("meow", LocalDate.of(2000, 1, 1), "1");
         ids[1] = givenUserInDB("meow-meow", LocalDate.of(2000, 1, 1), "2");
@@ -98,7 +98,7 @@ class UserRepositoryIntegrationTest {
     }
 
     @Test
-    void changeUserBioByID_thenGetUserByID_returnsCorrectData() throws SQLException {
+    void changeUserBioByID_thenGetUserByID_returnsCorrectData() throws SQLException, NoSuchUserException {
         Long id = givenUserInDB("meow", LocalDate.of(2000, 1, 1));
 
         userRepository.changeUserBioByID(id, "meow-meow-meow");

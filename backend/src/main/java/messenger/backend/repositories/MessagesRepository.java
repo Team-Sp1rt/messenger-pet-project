@@ -110,8 +110,7 @@ public class MessagesRepository {
         String sql = """
             SELECT * FROM messages
             WHERE chat_id = ? AND created_at < ?
-            ORDER BY created_at 
-            DESC, id DESC
+            ORDER BY created_at DESC, id DESC
             LIMIT ?;
             """;
 
@@ -129,7 +128,7 @@ public class MessagesRepository {
         }
     }
 
-    public Long getUserIDByMessageID(Long messageID) throws SQLException{
+    public Long getUserIDByMessageID(Long messageID) throws SQLException, NoSuchMessageException {
         String sql = """
             SELECT user_id FROM messages
             WHERE id = ?;
@@ -153,7 +152,7 @@ public class MessagesRepository {
 
     // этот метод видимо удалим.
 
-    public Message getMessageById(Long messageId) throws SQLException {
+    public Message getMessageById(Long messageId) throws SQLException, NoSuchMessageException {
         String sql = """
         SELECT *
         FROM messages

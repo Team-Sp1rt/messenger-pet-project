@@ -2,6 +2,8 @@ package messenger.backend.services;
 
 import messenger.backend.dtos.Message;
 import messenger.backend.dtos.User;
+import messenger.backend.exceptions.repostitories.messages.NoSuchMessageException;
+import messenger.backend.exceptions.repostitories.users.NoSuchUserException;
 import messenger.backend.exceptions.services.DatabaseException;
 import messenger.backend.generated.model.Chat;
 import messenger.backend.generated.model.ChatListResponse;
@@ -50,8 +52,12 @@ class ChatServiceTest {
         chatService = new ChatService(chatsRepository, chatMembersRepository, userRepository, messagesRepository);
     }
 
+    //TODO: тесты на кидание DatabaseException,
+    // который кидается после NoSuchUserException и/или NoSuchMessageException
+    // для 3 методов класса
+
     @Test
-    void createChat_validRequest_returnsCreatedChat() throws SQLException {
+    void createChat_validRequest_returnsCreatedChat() throws SQLException, NoSuchUserException {
 
         long creatorId = 1L;
         long memberId = 2L;
@@ -123,7 +129,7 @@ class ChatServiceTest {
     }
 
     @Test
-    void getChatMessagesBefore_messagesCountEqualsLimit_returnsPageWithNullCursor() throws SQLException {
+    void getChatMessagesBefore_messagesCountEqualsLimit_returnsPageWithNullCursor() throws SQLException, NoSuchMessageException {
         long chatId = 10L;
         long userId = 1L;
         int limit = 2;
@@ -146,7 +152,7 @@ class ChatServiceTest {
     }
 
     @Test
-    void getChats_userHasChats_returnsCorrectSummaries() throws SQLException {
+    void getChats_userHasChats_returnsCorrectSummaries() throws SQLException, NoSuchUserException {
         long userId = 1L;
         long firstMemberId = 2L;
         long secondMemberId = 3L;

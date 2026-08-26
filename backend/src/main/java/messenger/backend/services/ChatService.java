@@ -3,6 +3,7 @@ package messenger.backend.services;
 import messenger.backend.dtos.Message;
 import messenger.backend.dtos.User;
 import messenger.backend.exceptions.repostitories.messages.NoSuchMessageException;
+import messenger.backend.exceptions.repostitories.users.NoSuchUserException;
 import messenger.backend.exceptions.services.DatabaseException;
 import messenger.backend.generated.model.*;
 import messenger.backend.repositories.ChatMembersRepository;
@@ -10,6 +11,7 @@ import messenger.backend.repositories.ChatsRepository;
 import messenger.backend.repositories.MessagesRepository;
 import messenger.backend.repositories.UserRepository;
 import org.springframework.boot.webmvc.autoconfigure.WebMvcProperties;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.sql.SQLException;
@@ -49,7 +51,12 @@ public class ChatService {
 
             return new Chat(chatId, members);
         } catch (SQLException e) {
-            throw new DatabaseException("CreateChat failed due to SQLException: ", e);
+            throw new DatabaseException("CreateChat failed due to SQLException: " + e.getMessage(), e);
+        } catch (NoSuchUserException e) {
+            throw new DatabaseException(
+                    "NO_SUCH_USER", HttpStatus.NOT_FOUND,
+                    "CreateChat failed due to NoSuchUserException: " + e.getMessage(), e
+            );
         }
     }
 
@@ -65,7 +72,12 @@ public class ChatService {
                 dbMessages = messagesRepository.getNMessagesInTheChatBeforeMessage(limit + 1, chatId, beforeMessage);
             }
         } catch (SQLException e) {
-            throw new DatabaseException("GetChatMessages failed due to SQLException: ", e);
+            throw new DatabaseException("GetChatMessages failed due to SQLException: " + e.getMessage(), e);
+        } catch (NoSuchMessageException e) {
+            throw new DatabaseException(
+                    "NO_SUCH_MESSAGE", HttpStatus.NOT_FOUND,
+                    "GetChatMessages failed due to NoSuchMessageException: " + e.getMessage(), e
+            );
         }
 
         boolean hasMore = dbMessages.size() > limit;
@@ -102,7 +114,12 @@ public class ChatService {
             return new ChatListResponse(chatSummaryList);
 
         } catch (SQLException e) {
-            throw new DatabaseException("GetChatList failed due to SQLException: ", e);
+            throw new DatabaseException("GetChatList failed due to SQLException: " + e.getMessage(), e);
+        } catch (NoSuchUserException e) {
+            throw new DatabaseException(
+                    "NO_SUCH_USER", HttpStatus.NOT_FOUND,
+                    "GetChatList failed due to NoSuchUserException: " + e.getMessage(), e
+            );
         }
     }
 
