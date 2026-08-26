@@ -2,7 +2,7 @@ package messenger.backend.repositories;
 
 import messenger.backend.dtos.Message;
 import messenger.backend.dtos.NewMessage;
-import messenger.backend.exceptions.repostitories.messages.NoSuchMessageException;
+import messenger.backend.exceptions.repostitories.NoSuchMessageException;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Repository;
 
@@ -33,10 +33,7 @@ public class MessagesRepository {
             preparedStatement.setString(3, newMessage.content());
 
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                if (!resultSet.next()) {
-                    throw new SQLException("Couldn't add message due to unknown reason");
-                }
-
+                resultSet.next();
                 return mapRowToMessage(resultSet);
             }
         } finally {
@@ -44,7 +41,7 @@ public class MessagesRepository {
         }
     }
 
-    public Message editMessageReturnsMessage(Long id, String newContent) throws SQLException {
+    public Message editMessageReturnsMessage(Long id, String newContent) throws SQLException, NoSuchMessageException {
         String sql = """
             UPDATE messages SET
             content = ?
@@ -59,7 +56,7 @@ public class MessagesRepository {
 
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 if (!resultSet.next()) {
-                    throw new SQLException("Couldn't edit message content due to unknown reason");
+                    throw new NoSuchMessageException("There is no message with specified id");
                 }
 
                 return mapRowToMessage(resultSet);

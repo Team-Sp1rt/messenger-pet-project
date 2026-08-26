@@ -1,7 +1,7 @@
 package messenger.backend.repositories;
 
 import messenger.backend.exceptions.repostitories.ReposException;
-import messenger.backend.exceptions.repostitories.users.NoSuchUserException;
+import messenger.backend.exceptions.repostitories.NoSuchUserException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

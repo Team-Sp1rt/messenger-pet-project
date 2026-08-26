@@ -1,8 +1,6 @@
 package messenger.backend.repositories;
 
 import messenger.backend.dtos.User;
-import messenger.backend.exceptions.repostitories.InsertingException;
-import messenger.backend.exceptions.repostitories.ReposException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,7 +64,7 @@ public class ChatMembersRepositoryIntegrationTest {
     }
 
     @Test
-    void insertNewChatMember_thenGetAllMembersOfTheChat_returnsSetWithCorrectData() throws SQLException, ReposException {
+    void insertNewChatMember_thenGetAllMembersOfTheChat_returnsSetWithCorrectData() throws SQLException {
         List<Long> ids = givenFilledTablesReturnsListOfIDs();
 
         chatMembersRepository.insertNewChatMember(ids.get(FIRST_CHAT), ids.get(FIRST_USER));
@@ -77,7 +75,7 @@ public class ChatMembersRepositoryIntegrationTest {
     }
 
     @Test
-    void insertNewChatMember_thenGetAllChatsOfTheMember_returnsSetWithCorrectData() throws SQLException, ReposException {
+    void insertNewChatMember_thenGetAllChatsOfTheMember_returnsSetWithCorrectData() throws SQLException {
         List<Long> ids = givenFilledTablesReturnsListOfIDs();
 
         chatMembersRepository.insertNewChatMember(ids.get(FIRST_CHAT), ids.get(FIRST_USER));
@@ -88,7 +86,7 @@ public class ChatMembersRepositoryIntegrationTest {
     }
 
     @Test
-    void insertingNewChatMember_insertingSameDataTwice_throwsSQLException() throws SQLException, ReposException {
+    void insertingNewChatMember_insertingSameDataTwice_throwsSQLException() throws SQLException {
         List<Long> ids = givenFilledTablesReturnsListOfIDs();
 
         assertThrows(SQLException.class, () -> {
@@ -107,7 +105,7 @@ public class ChatMembersRepositoryIntegrationTest {
         assertThrows(SQLException.class, () -> chatMembersRepository.getAllChatsOfTheMember(1L));
     }
 
-    private List<Long> givenFilledTablesReturnsListOfIDs() throws SQLException, InsertingException {
+    private List<Long> givenFilledTablesReturnsListOfIDs() throws SQLException {
         Long firstUserID = authorisationRepository.insertNewAuthorisationReturnsUserID("user1", "user1");
         userRepository.insertNewUser(new User(firstUserID, "user1", null, LocalDate.of(1,1,1)));
         Long secondUserID = authorisationRepository.insertNewAuthorisationReturnsUserID("user2", "user2");

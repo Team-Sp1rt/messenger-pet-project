@@ -2,7 +2,7 @@ package messenger.backend.repositories;
 
 import messenger.backend.dtos.User;
 import messenger.backend.exceptions.repostitories.ReposException;
-import messenger.backend.exceptions.repostitories.users.NoSuchUserException;
+import messenger.backend.exceptions.repostitories.NoSuchUserException;
 import messenger.backend.generated.model.UserSummary;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

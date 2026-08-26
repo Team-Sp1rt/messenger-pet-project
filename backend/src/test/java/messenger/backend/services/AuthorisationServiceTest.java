@@ -1,8 +1,7 @@
 package messenger.backend.services;
 
 import messenger.backend.dtos.User;
-import messenger.backend.exceptions.repostitories.ReposException;
-import messenger.backend.exceptions.repostitories.users.NoSuchUserException;
+import messenger.backend.exceptions.repostitories.NoSuchUserException;
 import messenger.backend.exceptions.services.DatabaseException;
 import messenger.backend.exceptions.services.auth.InvalidCredentialsException;
 import messenger.backend.dtos.requests.AuthorisationRequest;

@@ -1,6 +1,6 @@
 package messenger.backend.services;
 
-import messenger.backend.exceptions.repostitories.users.NoSuchUserException;
+import messenger.backend.exceptions.repostitories.NoSuchUserException;
 import messenger.backend.exceptions.services.DatabaseException;
 import messenger.backend.repositories.UserRepository;
 import org.junit.jupiter.api.BeforeEach;

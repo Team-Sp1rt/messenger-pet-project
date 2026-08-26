@@ -1,7 +1,5 @@
 package messenger.backend.repositories;
 
-import messenger.backend.exceptions.repostitories.InsertingException;
-import messenger.backend.exceptions.repostitories.ReposException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,7 +47,7 @@ public class ChatsRepositoryIntegrationTest {
     }
 
     @Test
-    void insertNewChatReturnsChatID_IDsShouldBeIncrementing() throws SQLException, InsertingException {
+    void insertNewChatReturnsChatID_IDsShouldBeIncrementing() throws SQLException {
         Long firstID = chatsRepository.insertNewChatReturnsChatID();
         Long secondID = chatsRepository.insertNewChatReturnsChatID();
 

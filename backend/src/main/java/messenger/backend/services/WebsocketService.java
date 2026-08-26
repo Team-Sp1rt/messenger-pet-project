@@ -1,7 +1,7 @@
 package messenger.backend.services;
 
 import messenger.backend.dtos.*;
-import messenger.backend.exceptions.repostitories.messages.NoSuchMessageException;
+import messenger.backend.exceptions.repostitories.NoSuchMessageException;
 import messenger.backend.exceptions.services.WebsocketServiceException;
 import messenger.backend.messaging.WebSocketMessagePublisher;
 import messenger.backend.repositories.MessagesRepository;

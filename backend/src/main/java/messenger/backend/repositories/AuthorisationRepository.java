@@ -1,8 +1,6 @@
 package messenger.backend.repositories;
 
-import messenger.backend.exceptions.repostitories.InsertingException;
-import messenger.backend.exceptions.repostitories.ReposException;
-import messenger.backend.exceptions.repostitories.users.NoSuchUserException;
+import messenger.backend.exceptions.repostitories.NoSuchUserException;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Repository;
 
@@ -20,7 +18,7 @@ public class AuthorisationRepository {
         this.dataSource = dataSource;
     }
 
-    public Long insertNewAuthorisationReturnsUserID(String login, String passwordHash) throws SQLException, InsertingException {
+    public Long insertNewAuthorisationReturnsUserID(String login, String passwordHash) throws SQLException {
         String sql = """
             INSERT INTO authorisation(login, password_hash)
             VALUES(?, ?)
@@ -33,15 +31,8 @@ public class AuthorisationRepository {
             preparedStatement.setString(2, passwordHash);
 
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                long id;
-
-                if(!resultSet.next()) {
-                    throw new InsertingException("Couldn't add new authorisation data due to unknown reason");
-                }
-
-                id = resultSet.getLong("id");
-
-                return id;
+                resultSet.next();
+                return resultSet.getLong("id");
             }
         } finally {
             DataSourceUtils.releaseConnection(connection, dataSource);

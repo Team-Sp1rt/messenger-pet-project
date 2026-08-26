@@ -1,7 +1,7 @@
 package messenger.backend.repositories;
 
 import messenger.backend.dtos.User;
-import messenger.backend.exceptions.repostitories.users.NoSuchUserException;
+import messenger.backend.exceptions.repostitories.NoSuchUserException;
 import messenger.backend.generated.model.UserSummary;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Repository;
@@ -88,6 +88,8 @@ public class UserRepository {
             DataSourceUtils.releaseConnection(connection, dataSource);
         }
     }
+
+    //TODO: надо ретёрнать изменённого пользователя, что добавит NoSuchUserException
 
     public void changeUserBioByID(Long id, String newBio) throws SQLException {
         String sql = """

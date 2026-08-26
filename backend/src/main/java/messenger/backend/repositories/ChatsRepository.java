@@ -1,7 +1,5 @@
 package messenger.backend.repositories;
 
-import messenger.backend.exceptions.repostitories.InsertingException;
-import messenger.backend.exceptions.repostitories.ReposException;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Repository;
 
@@ -19,7 +17,7 @@ public class ChatsRepository {
         this.dataSource = dataSource;
     }
 
-    public Long insertNewChatReturnsChatID() throws SQLException, InsertingException {
+    public Long insertNewChatReturnsChatID() throws SQLException {
         String sql = """
             INSERT INTO chats
             DEFAULT VALUES
@@ -29,15 +27,9 @@ public class ChatsRepository {
         Connection connection = DataSourceUtils.getConnection(dataSource);
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql);
              ResultSet resultSet = preparedStatement.executeQuery()) {
-            long id;
 
-            if(!resultSet.next()) {
-                throw new InsertingException("Couldn't insert new chat due to unknown reason");
-            }
-
-            id = resultSet.getLong("id");
-
-            return id;
+            resultSet.next();
+            return resultSet.getLong("id");
         } finally {
             DataSourceUtils.releaseConnection(connection, dataSource);
         }

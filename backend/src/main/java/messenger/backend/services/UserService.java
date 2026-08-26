@@ -1,6 +1,6 @@
 package messenger.backend.services;
 
-import messenger.backend.exceptions.repostitories.users.NoSuchUserException;
+import messenger.backend.exceptions.repostitories.NoSuchUserException;
 import messenger.backend.exceptions.services.DatabaseException;
 import messenger.backend.generated.model.UserSearchResponse;
 import messenger.backend.repositories.UserRepository;
