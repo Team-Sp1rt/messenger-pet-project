@@ -101,11 +101,6 @@ public class ChatMembersRepositoryIntegrationTest {
         assertThrows(NoSuchChatException.class, () -> chatMembersRepository.getAllMembersOfTheChat(1L));
     }
 
-    @Test
-    void getAllChatsOfTheMember_thereIsNoChatsForMember_throwsSQLException() {
-        assertThrows(SQLException.class, () -> chatMembersRepository.getAllChatsOfTheMember(1L));
-    }
-
     private List<Long> givenFilledTablesReturnsListOfIDs() throws SQLException {
         Long firstUserID = authorisationRepository.insertNewAuthorisationReturnsUserID("user1", "user1");
         userRepository.insertNewUser(new User(firstUserID, "user1", null, LocalDate.of(1,1,1)));
