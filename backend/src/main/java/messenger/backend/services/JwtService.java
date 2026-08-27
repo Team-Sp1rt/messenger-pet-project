@@ -22,7 +22,7 @@ public class JwtService {
                 .subject(String.valueOf(id))
                 .claim("username", username)
                 .issuedAt(now)
-                .expiresAt(now.plusSeconds(60))
+                .expiresAt(now.plusSeconds(60 * 60 * 24 * 7))
                 .build();
 
         return jwtEncoder
