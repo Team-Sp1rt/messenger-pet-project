@@ -1,4 +1,4 @@
 package messenger.backend.dtos.responses;
 
-public class RefreshResponse {
+public record RefreshResponse(String token) {
 }
