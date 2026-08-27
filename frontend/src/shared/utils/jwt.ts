@@ -12,13 +12,3 @@ export function isTokenExpired(token: string): boolean {
         return true;
     }
 }
-
-export function getTokenExpiryMs(token: string): number {
-    const payload = token.split(".")[1];
-    if (!payload) throw new Error("Invalid token");
-
-    const base64url = payload.replaceAll('-', '+').replaceAll('_', '/');
-    const { exp } = JSON.parse(window.atob(base64url));
-
-    return exp * 1000;
-}
