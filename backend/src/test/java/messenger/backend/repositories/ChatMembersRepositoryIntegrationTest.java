@@ -1,6 +1,7 @@
 package messenger.backend.repositories;
 
 import messenger.backend.dtos.User;
+import messenger.backend.exceptions.repostitories.NoSuchChatException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,7 +65,7 @@ public class ChatMembersRepositoryIntegrationTest {
     }
 
     @Test
-    void insertNewChatMember_thenGetAllMembersOfTheChat_returnsSetWithCorrectData() throws SQLException {
+    void insertNewChatMember_thenGetAllMembersOfTheChat_returnsSetWithCorrectData() throws SQLException, NoSuchChatException {
         List<Long> ids = givenFilledTablesReturnsListOfIDs();
 
         chatMembersRepository.insertNewChatMember(ids.get(FIRST_CHAT), ids.get(FIRST_USER));
@@ -96,12 +97,12 @@ public class ChatMembersRepositoryIntegrationTest {
     }
 
     @Test
-    void getAllMembersOfTheChat_thereIsNoMembersInSpecifiedChat_throwsSQLException() {
-        assertThrows(SQLException.class, () -> chatMembersRepository.getAllMembersOfTheChat(1L));
+    void getAllMembersOfTheChat_thereIsNoMembersInChat_throwsNoSuchChatException() {
+        assertThrows(NoSuchChatException.class, () -> chatMembersRepository.getAllMembersOfTheChat(1L));
     }
 
     @Test
-    void getAllChatsOfTheMember_thereIsNoChatsForSpecifiedMember_throwsSQLException() {
+    void getAllChatsOfTheMember_thereIsNoChatsForMember_throwsSQLException() {
         assertThrows(SQLException.class, () -> chatMembersRepository.getAllChatsOfTheMember(1L));
     }
 

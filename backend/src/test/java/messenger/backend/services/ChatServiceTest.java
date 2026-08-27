@@ -2,6 +2,7 @@ package messenger.backend.services;
 
 import messenger.backend.dtos.Message;
 import messenger.backend.dtos.User;
+import messenger.backend.exceptions.repostitories.NoSuchChatException;
 import messenger.backend.exceptions.repostitories.ReposException;
 import messenger.backend.exceptions.repostitories.NoSuchMessageException;
 import messenger.backend.exceptions.repostitories.NoSuchUserException;
@@ -54,7 +55,7 @@ class ChatServiceTest {
     }
 
     //TODO: тесты на кидание DatabaseException,
-    // который кидается после NoSuchUserException и/или NoSuchMessageException
+    // который кидается после NoSuchUserException/NoSuchMessageException/NoSuchChatException
     // для 3 методов класса
 
     @Test
@@ -153,7 +154,7 @@ class ChatServiceTest {
     }
 
     @Test
-    void getChats_userHasChats_returnsCorrectSummaries() throws SQLException, NoSuchUserException {
+    void getChats_userHasChats_returnsCorrectSummaries() throws SQLException, NoSuchUserException, NoSuchChatException {
         long userId = 1L;
         long firstMemberId = 2L;
         long secondMemberId = 3L;

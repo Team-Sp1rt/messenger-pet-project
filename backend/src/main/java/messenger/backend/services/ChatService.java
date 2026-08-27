@@ -2,6 +2,7 @@ package messenger.backend.services;
 
 import messenger.backend.dtos.Message;
 import messenger.backend.dtos.User;
+import messenger.backend.exceptions.repostitories.NoSuchChatException;
 import messenger.backend.exceptions.repostitories.NoSuchMessageException;
 import messenger.backend.exceptions.repostitories.NoSuchUserException;
 import messenger.backend.exceptions.services.DatabaseException;
@@ -117,6 +118,11 @@ public class ChatService {
             throw new DatabaseException(
                     "NO_SUCH_USER", HttpStatus.NOT_FOUND,
                     "GetChatList failed due to NoSuchUserException: " + e.getMessage(), e
+            );
+        } catch (NoSuchChatException e) {
+            throw new DatabaseException(
+                    "NO_SUCH_CHAT", HttpStatus.NOT_FOUND,
+                    "GetChatList failed due to NoSuchChatException: " + e.getMessage(), e
             );
         }
     }

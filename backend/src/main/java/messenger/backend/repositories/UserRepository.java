@@ -51,7 +51,7 @@ public class UserRepository {
 
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 if (!resultSet.next()) {
-                    throw new NoSuchUserException("Couldn't get user due to unknown reason");
+                    throw new NoSuchUserException("There is no such user with specified id");
                 }
 
                 return mapRowToUser(resultSet);
@@ -89,13 +89,12 @@ public class UserRepository {
         }
     }
 
-    //TODO: надо ретёрнать изменённого пользователя, что добавит NoSuchUserException
-
-    public void changeUserBioByID(Long id, String newBio) throws SQLException {
+    public User changeUserBioByIDReturnsUser(Long id, String newBio) throws SQLException, NoSuchUserException {
         String sql = """
             UPDATE users SET
             bio = ?
             WHERE id = ?
+            RETURNING *
             """;
 
         Connection connection = DataSourceUtils.getConnection(dataSource);
@@ -103,7 +102,13 @@ public class UserRepository {
             preparedStatement.setString(1, newBio);
             preparedStatement.setLong(2, id);
 
-            preparedStatement.execute();
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                if (!resultSet.next()) {
+                    throw new NoSuchUserException("There is no such user with specified id");
+                }
+
+                return mapRowToUser(resultSet);
+            }
         } finally {
             DataSourceUtils.releaseConnection(connection, dataSource);
         }

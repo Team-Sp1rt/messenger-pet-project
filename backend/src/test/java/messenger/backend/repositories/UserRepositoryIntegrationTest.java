@@ -99,14 +99,18 @@ class UserRepositoryIntegrationTest {
     }
 
     @Test
-    void changeUserBioByID_thenGetUserByID_returnsCorrectData() throws SQLException, ReposException {
+    void changeUserBioByID_editingExistingUser_returnsCorrectData() throws SQLException, ReposException {
         Long id = givenUserInDB("meow", LocalDate.of(2000, 1, 1));
 
-        userRepository.changeUserBioByID(id, "meow-meow-meow");
+        User actualUser = userRepository.changeUserBioByIDReturnsUser(id, "meow-meow-meow");
 
-        User actualUser = userRepository.getUserByID(id);
         User expectedUser = new User(id, "meow", "meow-meow-meow", LocalDate.of(2000, 1, 1));
         assertEquals(expectedUser, actualUser);
+    }
+
+    @Test
+    void changeUserBioByID_editingNotExistingUser_throwsNoSuchUserException() throws SQLException, ReposException {
+        assertThrows(NoSuchUserException.class, () -> userRepository.changeUserBioByIDReturnsUser(52L, "meow-meow-meow"));
     }
 
 
