@@ -14,3 +14,9 @@ export function registerRequest(payload: RegisterPayload) {
         body: JSON.stringify(payload),
     });
 }
+
+export function refreshRequest() {
+    return apiFetch<AuthResponse>('/auth/refresh', {
+        method: 'POST',
+    });
+}

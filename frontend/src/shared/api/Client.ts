@@ -10,6 +10,7 @@ export function registerUnauthorizedHandler(fn: () => void) {
 }
 
 export async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
+    const isPublicAuthRequest = path === '/auth/login' || path === '/auth/register';
     const token = localStorage.getItem("token");
     
     if (token && isTokenExpired(token) && !path.startsWith('/auth')) {
@@ -26,9 +27,9 @@ export async function apiFetch<T>(path: string, options: RequestInit = {}): Prom
         },
     });
 
-    if (res.status === 401 && !path.startsWith('/auth')) {
+
+    if (res.status === 401 && !isPublicAuthRequest) {
         onUnauthorized?.();
-        
         throw new ApiError(401, "Unauthorized");
     }
 

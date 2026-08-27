@@ -3,6 +3,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { registerUnauthorizedHandler } from "../api/Client";
 import type { AuthContextType } from "../types";
 import { isTokenExpired } from "../utils/jwt";
+import { useTokenRefresh } from "../hooks/useTokenRefresh";
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
@@ -38,6 +39,8 @@ export function AuthProvider({
         registerUnauthorizedHandler(logout);
     }, []);
 
+    useTokenRefresh(token, login, logout);
+    
     return (
         <AuthContext.Provider
             value={{token, login, logout}}
