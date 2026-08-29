@@ -141,8 +141,7 @@ class ChatServiceTest {
         Message middleMessage = new Message(2L, chatId, 2L, "middleMessage", Timestamp.from(Instant.parse("2026-08-24T12:01:00Z")));
         Message oldestMessage = new Message(1L, chatId, userId, "oldestMessage", Timestamp.from(Instant.parse("2026-08-24T12:00:00Z")));
 
-        when(messagesRepository.getMessageById(beforeId)).thenReturn(newestMessage);
-        when(messagesRepository.getNMessagesInTheChatBeforeMessage(limit + 1, chatId, newestMessage))
+        when(messagesRepository.getNMessagesInTheChatBeforeMessageWithID(limit + 1, chatId, newestMessage.id()))
                 .thenReturn(List.of(middleMessage, oldestMessage));
 
         MessagePage result = chatService.getChatMessages(chatId, beforeId, limit);

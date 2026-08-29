@@ -65,10 +65,7 @@ public class ChatService {
             if (beforeMessageId == null) {
                 dbMessages = messagesRepository.getLastNMessagesInTheChat(limit + 1, chatId);
             } else {
-                // TODO: использовать метод, который напишет ваня
-                //   dbMessages = messagesRepository.getNMessagesInTheChatBeforeMessage(limit + 1, chatId, beforeMessageId);
-                Message beforeMessage = messagesRepository.getMessageById(beforeMessageId);
-                dbMessages = messagesRepository.getNMessagesInTheChatBeforeMessage(limit + 1, chatId, beforeMessage);
+                dbMessages = messagesRepository.getNMessagesInTheChatBeforeMessageWithID(limit + 1, chatId, beforeMessageId);
             }
         } catch (SQLException e) {
             throw new DatabaseException("GetChatMessages failed due to SQLException: " + e.getMessage(), e);
