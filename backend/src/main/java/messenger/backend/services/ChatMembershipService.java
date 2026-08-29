@@ -25,10 +25,14 @@ public class ChatMembershipService {
                         "User is not a member of this chat"
                 );
             }
-            //TODO: хз стоит ли делать именно так, но я лучше не буду совать свой нос куда не надо
-        } catch (SQLException | NoSuchChatException exception) {
+        } catch (SQLException exception) {
             throw new WebsocketServiceException(
-                    WebSocketErrorCode.CHAT_ACCESS_DENIED,
+                    WebSocketErrorCode.MESSAGE_OPERATION_FAILED,
+                    exception.getMessage()
+            );
+        } catch (NoSuchChatException exception) {
+            throw new WebsocketServiceException(
+                    WebSocketErrorCode.CHAT_NOT_FOUND,
                     exception.getMessage()
             );
         }

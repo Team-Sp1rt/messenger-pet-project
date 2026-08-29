@@ -72,7 +72,7 @@ public class WebsocketService {
             throw new WebsocketServiceException(WebSocketErrorCode.MESSAGE_OPERATION_FAILED, "Couldn't edit message due to unknown reason", e);
         } catch (NoSuchMessageException e) {
             throw new WebsocketServiceException(
-                    WebSocketErrorCode.MESSAGE_OPERATION_FAILED,
+                    WebSocketErrorCode.MESSAGE_NOT_FOUND,
                     "Couldn't edit message due to NoSuchMessageException: " + e.getMessage(), e
             );
         }
@@ -104,7 +104,7 @@ public class WebsocketService {
             throw new WebsocketServiceException(WebSocketErrorCode.MESSAGE_OPERATION_FAILED, "Couldn't delete message due to unknown reason", e);
         } catch (NoSuchMessageException e) {
             throw new WebsocketServiceException(
-                    WebSocketErrorCode.MESSAGE_OPERATION_FAILED,
+                    WebSocketErrorCode.MESSAGE_NOT_FOUND,
                     "Couldn't delete message due to NoSuchMessageException: " + e.getMessage(), e
             );
         }
