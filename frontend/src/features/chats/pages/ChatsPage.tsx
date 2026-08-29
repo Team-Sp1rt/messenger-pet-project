@@ -1,4 +1,5 @@
 import ChatsHeader from '../components/ChatsHeader';
+import ListChats from '../components/ListChats';
 import styles from '../styles/Chats.module.css'
 
 function ChatsPage() {
@@ -8,6 +9,8 @@ function ChatsPage() {
             <div className={styles.leftColumnMainWrapper}>
                 <div className={styles.leftColumnMain}>
                     <ChatsHeader />
+
+                    <ListChats />
                 </div>
             </div>
         </div>

@@ -16,19 +16,40 @@
     mask-size: 430px auto;
 
     mask-position: center center;
+
+    font-family: 'Segoe UI', sans-serif;
 }
 
 .leftColumnMainWrapper {
     position: relative;
     z-index: 1;
-    padding: 1rem;
+    margin: 0 0 0 1rem;
+    padding: 1rem 0;
     height: 100%;
+    width: 25vw;
     box-sizing: border-box;
 }
 
 .leftColumnMain {
     background-color: var(--bg-card);
-    width: 25vw;
+    width: 100%;
     height: 100%;
     border-radius: 1.5rem;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+}
+
+@media (width >= 1276px) {
+    .leftColumnMainWrapper {
+        width: 512px;
+        max-width: 33vw;
+    }
+}
+
+@media (width >= 926px) {
+    .leftColumnMainWrapper {
+        width: 512px;
+        max-width: 40vw;
+    }
 }
