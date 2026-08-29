@@ -45,8 +45,8 @@ public class ChatService {
             chatMembersRepository.insertNewChatMember(chatId, creatorId);
 
             List<UserSummary> members = List.of(
-                    toUserSummary(userRepository.getUserByID(creatorId)),
-                    toUserSummary(userRepository.getUserByID(request.getMemberId())));
+                    userRepository.getUserSummaryByID(creatorId),
+                    userRepository.getUserSummaryByID(request.getMemberId()));
 
             return new Chat(chatId, members);
         } catch (SQLException e) {
@@ -96,7 +96,7 @@ public class ChatService {
 
             Set<Long> chatIds = chatMembersRepository.getAllChatsOfTheMember(userId);
             List<ChatSummary> chatSummaryList = new ArrayList<>();
-            UserSummary userSummary = toUserSummary(userRepository.getUserByID(userId));
+            UserSummary userSummary = userRepository.getUserSummaryByID(userId);
 
             for (Long id : chatIds) {
                 Set<Long> memberIds = chatMembersRepository.getAllMembersOfTheChat(id);
@@ -104,7 +104,7 @@ public class ChatService {
                 List<UserSummary> userSummaryList = new ArrayList<>();
                 userSummaryList.add(userSummary);
                 if (!memberId.isEmpty()) {
-                    userSummaryList.add(toUserSummary(userRepository.getUserByID(memberId.getFirst())));
+                    userSummaryList.add(userRepository.getUserSummaryByID(memberId.getFirst()));
                 }
                 List<Message> messages = messagesRepository.getLastNMessagesInTheChat(1, id);
                 chatSummaryList.add(new ChatSummary(id, userSummaryList, messages.isEmpty() ? null : toApiMessage(messages.getFirst())));
@@ -141,6 +141,7 @@ public class ChatService {
         );
     }
 
+    @Deprecated
     private UserSummary toUserSummary(User user) {
         return new UserSummary(user.id(), user.username());
     }
