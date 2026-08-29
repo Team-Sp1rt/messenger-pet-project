@@ -10,7 +10,7 @@ export function useTokenRefresh(
         if (!token) return;
 
         refreshRequest()
-            .then(({ token: newToken }) => login(newToken))
+            .then(({ token: newToken}) => login(newToken))
             .catch(() => {
                 logout();
             });

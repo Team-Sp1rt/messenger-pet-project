@@ -1,5 +1,5 @@
-import styles from '../styles/ChatsLeftColumn.module.scss'
-import type { ChatFoldersProps } from '../types'
+import styles from '../../styles/ChatsLeftColumn.module.scss'
+import type { ChatFoldersProps } from '../../types'
 
 function ChatFolders({ folders, activeFolderId, onSelect }: ChatFoldersProps) {
     return (

@@ -12,3 +12,19 @@ export function isTokenExpired(token: string): boolean {
         return true;
     }
 }
+
+export function decodeJwtPayload(token: string): Record<string, any> | null {
+    try {
+        const payload = token.split('.')[1]
+        const normalized = payload.replace(/-/g, '+').replace(/_/g, '/')
+        const json = atob(normalized)
+        return JSON.parse(json)
+    } catch {
+        return null
+    }
+}
+
+export function getUserIdFromToken(token: string): number | null {
+    const payload = decodeJwtPayload(token)
+    return payload?.sub ? Number(payload.sub) : null
+}
