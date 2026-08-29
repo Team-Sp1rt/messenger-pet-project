@@ -1,7 +1,8 @@
 package messenger.backend.repositories;
 
 import messenger.backend.dtos.User;
-import messenger.backend.exceptions.repostitories.users.NoSuchUserException;
+import messenger.backend.exceptions.repostitories.ReposException;
+import messenger.backend.exceptions.repostitories.NoSuchUserException;
 import messenger.backend.generated.model.UserSummary;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -58,7 +59,7 @@ class UserRepositoryIntegrationTest {
     }
 
     @Test
-    void insertNewUser_thenGetUserByID_returnsCorrectData() throws SQLException {
+    void insertNewUser_thenGetUserByID_returnsCorrectData() throws SQLException, ReposException {
         Long id = givenUserInDB("meow", LocalDate.of(2000, 1, 1));
 
         User user = userRepository.getUserByID(id);
@@ -73,7 +74,7 @@ class UserRepositoryIntegrationTest {
 
     //Фу
     @Test
-    void getNUserSummariesStartingWithSubstring_returnsCorrectSortedUserSummariesList() throws SQLException {
+    void getNUserSummariesStartingWithSubstring_returnsCorrectSortedUserSummariesList() throws SQLException, ReposException {
         Long[] ids = new Long[5];
         ids[0] = givenUserInDB("meow", LocalDate.of(2000, 1, 1), "1");
         ids[1] = givenUserInDB("meow-meow", LocalDate.of(2000, 1, 1), "2");
@@ -98,22 +99,26 @@ class UserRepositoryIntegrationTest {
     }
 
     @Test
-    void changeUserBioByID_thenGetUserByID_returnsCorrectData() throws SQLException {
+    void changeUserBioByID_editingExistingUser_returnsCorrectData() throws SQLException, ReposException {
         Long id = givenUserInDB("meow", LocalDate.of(2000, 1, 1));
 
-        userRepository.changeUserBioByID(id, "meow-meow-meow");
+        User actualUser = userRepository.changeUserBioByIDReturnsUser(id, "meow-meow-meow");
 
-        User actualUser = userRepository.getUserByID(id);
         User expectedUser = new User(id, "meow", "meow-meow-meow", LocalDate.of(2000, 1, 1));
         assertEquals(expectedUser, actualUser);
     }
 
+    @Test
+    void changeUserBioByID_editingNotExistingUser_throwsNoSuchUserException() throws SQLException, ReposException {
+        assertThrows(NoSuchUserException.class, () -> userRepository.changeUserBioByIDReturnsUser(52L, "meow-meow-meow"));
+    }
 
-    private Long givenUserInDB(String username, LocalDate birthday) throws SQLException {
+
+    private Long givenUserInDB(String username, LocalDate birthday) throws SQLException, ReposException {
         return givenUserInDB(username, birthday, "");
     }
 
-    private Long givenUserInDB(String username, LocalDate birthday, String loginDifference) throws SQLException {
+    private Long givenUserInDB(String username, LocalDate birthday, String loginDifference) throws SQLException, ReposException {
         Long id = authorisationRepository.insertNewAuthorisationReturnsUserID("meow" + loginDifference, "meow-meow");
         userRepository.insertNewUser(new User(id, username, "", birthday));
         return id;

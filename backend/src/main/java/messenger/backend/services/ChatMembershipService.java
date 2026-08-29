@@ -1,6 +1,7 @@
 package messenger.backend.services;
 
 import messenger.backend.dtos.WebSocketErrorCode;
+import messenger.backend.exceptions.repostitories.NoSuchChatException;
 import messenger.backend.exceptions.services.WebsocketServiceException;
 import messenger.backend.repositories.ChatMembersRepository;
 import org.springframework.stereotype.Service;
@@ -26,7 +27,12 @@ public class ChatMembershipService {
             }
         } catch (SQLException exception) {
             throw new WebsocketServiceException(
-                    WebSocketErrorCode.CHAT_ACCESS_DENIED,
+                    WebSocketErrorCode.MESSAGE_OPERATION_FAILED,
+                    exception.getMessage()
+            );
+        } catch (NoSuchChatException exception) {
+            throw new WebsocketServiceException(
+                    WebSocketErrorCode.CHAT_NOT_FOUND,
                     exception.getMessage()
             );
         }

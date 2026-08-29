@@ -14,7 +14,7 @@ public class DatabaseException extends AppException {
     protected DatabaseException(String errorCode, HttpStatus status, String message) {
         super(errorCode, status, message);
     }
-    protected DatabaseException(String errorCode, HttpStatus status, String message, Throwable cause) {
+    public DatabaseException(String errorCode, HttpStatus status, String message, Throwable cause) {
         super(errorCode, status, message, cause);
     }
 }

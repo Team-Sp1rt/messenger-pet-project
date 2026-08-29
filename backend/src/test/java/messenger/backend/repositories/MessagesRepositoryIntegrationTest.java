@@ -3,7 +3,8 @@ package messenger.backend.repositories;
 import messenger.backend.dtos.Message;
 import messenger.backend.dtos.NewMessage;
 import messenger.backend.dtos.User;
-import messenger.backend.exceptions.repostitories.messages.NoSuchMessageException;
+import messenger.backend.exceptions.repostitories.ReposException;
+import messenger.backend.exceptions.repostitories.NoSuchMessageException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -122,7 +123,7 @@ public class MessagesRepositoryIntegrationTest {
 
     @Test
     void getUserIDByMessageID_ReturnsCorrectUserID()
-            throws SQLException {
+            throws SQLException, ReposException {
         List<Long> ids = givenFilledAllTablesReturnsListOfIDs();
 
         Long userID = messagesRepository.getUserIDByMessageID(ids.get(SECOND_MESSAGE));
@@ -131,14 +132,13 @@ public class MessagesRepositoryIntegrationTest {
     }
 
     @Test
-    void getUserIDByMessageID_noMessageWithSuchID_ThrowsNoSuchMessageException()
-            throws SQLException {
+    void getUserIDByMessageID_noMessageWithSuchID_ThrowsNoSuchMessageException() {
         assertThrows(NoSuchMessageException.class, () -> messagesRepository.getUserIDByMessageID(13L));
     }
 
     @Test
     void editMessageReturnsMessage_returnsCorrectMessage()
-            throws SQLException {
+            throws SQLException, NoSuchMessageException {
         List<Long> ids = givenFilledAllTablesReturnsListOfIDs();
         String newContent = "woof";
 
@@ -148,8 +148,8 @@ public class MessagesRepositoryIntegrationTest {
     }
 
     @Test
-    void editMessageReturnsMessage_editingNonExistingMessage_throwsSQLException() {
-        assertThrows(SQLException.class, () -> messagesRepository.editMessageReturnsMessage(1L, "woof"));
+    void editMessageReturnsMessage_editingNonExistingMessage_throwsNoSuchMessageException() {
+        assertThrows(NoSuchMessageException.class, () -> messagesRepository.editMessageReturnsMessage(1L, "woof"));
     }
 
     @Test

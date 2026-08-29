@@ -1,5 +1,7 @@
 package messenger.backend.repositories;
 
+import messenger.backend.exceptions.repostitories.ReposException;
+import messenger.backend.exceptions.repostitories.NoSuchUserException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +50,7 @@ public class AuthorisationRepositoryIntegrationTest {
     }
 
     @Test
-    void insertNewAuthorization_thenGetUserIDByLoginAndGetPasswordHashByLogin_returnsCorrectData() throws SQLException {
+    void insertNewAuthorization_thenGetUserIDByLoginAndGetPasswordHashByLogin_returnsCorrectData() throws SQLException, ReposException {
         String login = "meow";
         String passwordHash = "meow-meow";
         Long id = authorisationRepository.insertNewAuthorisationReturnsUserID(login, passwordHash);
@@ -61,13 +63,13 @@ public class AuthorisationRepositoryIntegrationTest {
     }
 
     @Test
-    void getUserIDByLogin_noUserWithSpecifiedLogin_throwsSQLException() {
-        assertThrows(SQLException.class, () -> authorisationRepository.getUserIDByLogin("meow"));
+    void getUserIDByLogin_noUserWithSpecifiedLogin_throwsNoSuchUserException() {
+        assertThrows(NoSuchUserException.class, () -> authorisationRepository.getUserIDByLogin("meow"));
     }
 
     @Test
-    void getPasswordHashByLogin_noUserWithSpecifiedLogin_throwsSQLException() {
-        assertThrows(SQLException.class, () -> authorisationRepository.getPasswordHashByLogin("meow"));
+    void getPasswordHashByLogin_noUserWithSpecifiedLogin_throwsNoSuchUserException() {
+        assertThrows(NoSuchUserException.class, () -> authorisationRepository.getPasswordHashByLogin("meow"));
     }
 
     @Test

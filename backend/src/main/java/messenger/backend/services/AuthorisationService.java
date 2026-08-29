@@ -3,10 +3,12 @@ package messenger.backend.services;
 import messenger.backend.dtos.User;
 import messenger.backend.dtos.requests.AuthorisationRequest;
 import messenger.backend.dtos.responses.AuthResponse;
+import messenger.backend.exceptions.repostitories.NoSuchUserException;
 import messenger.backend.exceptions.services.DatabaseException;
 import messenger.backend.exceptions.services.auth.InvalidCredentialsException;
 import messenger.backend.repositories.AuthorisationRepository;
 import messenger.backend.repositories.UserRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -38,7 +40,7 @@ public class AuthorisationService {
             String passwordHash = authorisationRepository.getPasswordHashByLogin(login);
 
             return new UserCredentials(userId, passwordHash);
-        } catch (SQLException e) {
+        } catch (SQLException | NoSuchUserException e) {
             throw new InvalidCredentialsException("Invalid login or password", e);
         }
     }
@@ -54,6 +56,8 @@ public class AuthorisationService {
             return userRepository.getUserByID(userId);
         } catch (SQLException e) {
             throw new DatabaseException("Failed to retrieve user", e);
+        } catch (NoSuchUserException e) {
+            throw new DatabaseException("NO_SUCH_USER", HttpStatus.NOT_FOUND, "Database exception: " + e.getMessage(), e);
         }
     }
 

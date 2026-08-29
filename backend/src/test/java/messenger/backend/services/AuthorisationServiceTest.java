@@ -1,6 +1,7 @@
 package messenger.backend.services;
 
 import messenger.backend.dtos.User;
+import messenger.backend.exceptions.repostitories.NoSuchUserException;
 import messenger.backend.exceptions.services.DatabaseException;
 import messenger.backend.exceptions.services.auth.InvalidCredentialsException;
 import messenger.backend.dtos.requests.AuthorisationRequest;
@@ -40,8 +41,11 @@ class AuthorisationServiceTest {
         authorisationService = new AuthorisationService(authorisationRepository, userRepository, passwordEncoder, jwtService);
     }
 
+    //TODO: тесты на кидание DatabaseException,
+    // который кидается после NoSuchUserException и/или NoSuchMessageException
+
     @Test
-    void getUserByLoginAndPassword_correctPassword_returnsUserAndToken() throws SQLException {
+    void getUserByLoginAndPassword_correctPassword_returnsUserAndToken() throws SQLException, NoSuchUserException {
         String rawPassword = "password123";
         String hash = passwordEncoder.encode(rawPassword);
         User user = new User(1L, "Test", "", null);
@@ -58,7 +62,7 @@ class AuthorisationServiceTest {
     }
 
     @Test
-    void getUserByLoginAndPassword_wrongPassword_throwsInvalidCredentialsException() throws SQLException {
+    void getUserByLoginAndPassword_wrongPassword_throwsInvalidCredentialsException() throws SQLException, NoSuchUserException {
         String hash = passwordEncoder.encode("correctPassword");
 
         when(authorisationRepository.getUserIDByLogin("testuser")).thenReturn(1L);
@@ -73,7 +77,7 @@ class AuthorisationServiceTest {
     }
 
     @Test
-    void getUserByLoginAndPassword_nonExistentLogin_throwsInvalidCredentialsException() throws SQLException {
+    void getUserByLoginAndPassword_nonExistentLogin_throwsInvalidCredentialsException() throws SQLException, NoSuchUserException {
         when(authorisationRepository.getUserIDByLogin("ghost"))
                 .thenThrow(new SQLException("User not found"));
 
@@ -86,7 +90,7 @@ class AuthorisationServiceTest {
     }
 
     @Test
-    void getUserByLoginAndPassword_databaseErrorWhileGettingCredentials_throwsInvalidCredentialsException() throws SQLException {
+    void getUserByLoginAndPassword_databaseErrorWhileGettingCredentials_throwsInvalidCredentialsException() throws SQLException, NoSuchUserException {
         when(authorisationRepository.getUserIDByLogin("testuser"))
                 .thenThrow(new SQLException("Connection refused", "08001"));
 
@@ -99,7 +103,7 @@ class AuthorisationServiceTest {
     }
 
     @Test
-    void getUserByLoginAndPassword_databaseErrorWhileGettingUser_throwsDatabaseException() throws SQLException {
+    void getUserByLoginAndPassword_databaseErrorWhileGettingUser_throwsDatabaseException() throws SQLException, NoSuchUserException {
         String hash = passwordEncoder.encode("password123");
 
         when(authorisationRepository.getUserIDByLogin("testuser")).thenReturn(1L);

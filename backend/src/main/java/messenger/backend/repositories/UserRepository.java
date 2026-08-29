@@ -1,7 +1,7 @@
 package messenger.backend.repositories;
 
 import messenger.backend.dtos.User;
-import messenger.backend.exceptions.repostitories.users.NoSuchUserException;
+import messenger.backend.exceptions.repostitories.NoSuchUserException;
 import messenger.backend.generated.model.UserSummary;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Repository;
@@ -39,7 +39,7 @@ public class UserRepository {
         }
     }
 
-    public User getUserByID(Long id) throws SQLException {
+    public User getUserByID(Long id) throws SQLException, NoSuchUserException {
         String sql = """
             SELECT * FROM users
             WHERE id = ?;
@@ -51,7 +51,7 @@ public class UserRepository {
 
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 if (!resultSet.next()) {
-                    throw new NoSuchUserException("Couldn't get user due to unknown reason");
+                    throw new NoSuchUserException("There is no such user with specified id");
                 }
 
                 return mapRowToUser(resultSet);
@@ -62,7 +62,7 @@ public class UserRepository {
     }
 
     public List<UserSummary> getNUserSummariesOfUsersWithSubstringInUsername(String substring, Integer n)
-            throws SQLException {
+            throws SQLException, NoSuchUserException {
         String sql = """
             SELECT * FROM users
             WHERE username ILIKE ?
@@ -89,11 +89,12 @@ public class UserRepository {
         }
     }
 
-    public void changeUserBioByID(Long id, String newBio) throws SQLException {
+    public User changeUserBioByIDReturnsUser(Long id, String newBio) throws SQLException, NoSuchUserException {
         String sql = """
             UPDATE users SET
             bio = ?
             WHERE id = ?
+            RETURNING *
             """;
 
         Connection connection = DataSourceUtils.getConnection(dataSource);
@@ -101,7 +102,13 @@ public class UserRepository {
             preparedStatement.setString(1, newBio);
             preparedStatement.setLong(2, id);
 
-            preparedStatement.execute();
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                if (!resultSet.next()) {
+                    throw new NoSuchUserException("There is no such user with specified id");
+                }
+
+                return mapRowToUser(resultSet);
+            }
         } finally {
             DataSourceUtils.releaseConnection(connection, dataSource);
         }

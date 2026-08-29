@@ -2,7 +2,7 @@ package messenger.backend.repositories;
 
 import messenger.backend.dtos.Message;
 import messenger.backend.dtos.NewMessage;
-import messenger.backend.exceptions.repostitories.messages.NoSuchMessageException;
+import messenger.backend.exceptions.repostitories.NoSuchMessageException;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Repository;
 
@@ -33,10 +33,7 @@ public class MessagesRepository {
             preparedStatement.setString(3, newMessage.content());
 
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
-                if (!resultSet.next()) {
-                    throw new SQLException("Couldn't add message due to unknown reason");
-                }
-
+                resultSet.next();
                 return mapRowToMessage(resultSet);
             }
         } finally {
@@ -44,7 +41,7 @@ public class MessagesRepository {
         }
     }
 
-    public Message editMessageReturnsMessage(Long id, String newContent) throws SQLException {
+    public Message editMessageReturnsMessage(Long id, String newContent) throws SQLException, NoSuchMessageException {
         String sql = """
             UPDATE messages SET
             content = ?
@@ -59,7 +56,7 @@ public class MessagesRepository {
 
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 if (!resultSet.next()) {
-                    throw new SQLException("Couldn't edit message content due to unknown reason");
+                    throw new NoSuchMessageException("There is no message with specified id");
                 }
 
                 return mapRowToMessage(resultSet);
@@ -110,8 +107,7 @@ public class MessagesRepository {
         String sql = """
             SELECT * FROM messages
             WHERE chat_id = ? AND created_at < ?
-            ORDER BY created_at 
-            DESC, id DESC
+            ORDER BY created_at DESC, id DESC
             LIMIT ?;
             """;
 
@@ -129,7 +125,7 @@ public class MessagesRepository {
         }
     }
 
-    public Long getUserIDByMessageID(Long messageID) throws SQLException{
+    public Long getUserIDByMessageID(Long messageID) throws SQLException, NoSuchMessageException {
         String sql = """
             SELECT user_id FROM messages
             WHERE id = ?;
@@ -153,7 +149,7 @@ public class MessagesRepository {
 
     // этот метод видимо удалим.
 
-    public Message getMessageById(Long messageId) throws SQLException {
+    public Message getMessageById(Long messageId) throws SQLException, NoSuchMessageException {
         String sql = """
         SELECT *
         FROM messages

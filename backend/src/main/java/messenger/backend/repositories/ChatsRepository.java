@@ -27,15 +27,9 @@ public class ChatsRepository {
         Connection connection = DataSourceUtils.getConnection(dataSource);
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql);
              ResultSet resultSet = preparedStatement.executeQuery()) {
-            long id;
 
-            if(!resultSet.next()) {
-                throw new SQLException("Couldn't insert new chat due to unknown reason");
-            }
-
-            id = resultSet.getLong("id");
-
-            return id;
+            resultSet.next();
+            return resultSet.getLong("id");
         } finally {
             DataSourceUtils.releaseConnection(connection, dataSource);
         }
