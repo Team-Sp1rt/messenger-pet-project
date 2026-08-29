@@ -72,6 +72,20 @@ class UserRepositoryIntegrationTest {
         assertThrows(NoSuchUserException.class, () -> userRepository.getUserByID(13L));
     }
 
+    @Test
+    void insertNewUser_thenGetUserSummaryByID_returnsCorrectData() throws SQLException, ReposException {
+        Long id = givenUserInDB("meow", LocalDate.of(2000, 1, 1));
+
+        UserSummary user = userRepository.getUserSummaryByID(id);
+
+        assertEquals(user, new UserSummary(id, "meow"));
+    }
+
+    @Test
+    void getUserSummaryByIDTest_incorrectID_throwsNoSuchUserException() {
+        assertThrows(NoSuchUserException.class, () -> userRepository.getUserSummaryByID(13L));
+    }
+
     //Фу
     @Test
     void getNUserSummariesStartingWithSubstring_returnsCorrectSortedUserSummariesList() throws SQLException, ReposException {

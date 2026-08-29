@@ -61,6 +61,28 @@ public class UserRepository {
         }
     }
 
+    public UserSummary getUserSummaryByID(Long id)throws SQLException, NoSuchUserException {
+        String sql = """
+            SELECT id, username FROM users
+            WHERE id = ?;
+            """;
+
+        Connection connection = DataSourceUtils.getConnection(dataSource);
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setLong(1, id);
+
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                if (!resultSet.next()) {
+                    throw new NoSuchUserException("There is no such user with specified id");
+                }
+
+                return mapRowToUserSummary(resultSet);
+            }
+        } finally {
+            DataSourceUtils.releaseConnection(connection, dataSource);
+        }
+    }
+
     public List<UserSummary> getNUserSummariesOfUsersWithSubstringInUsername(String substring, Integer n)
             throws SQLException, NoSuchUserException {
         String sql = """
