@@ -2,7 +2,6 @@ package messenger.backend.services;
 
 import messenger.backend.dtos.Message;
 import messenger.backend.dtos.User;
-import messenger.backend.exceptions.repostitories.NoSuchChatException;
 import messenger.backend.exceptions.repostitories.NoSuchMessageException;
 import messenger.backend.exceptions.repostitories.NoSuchUserException;
 import messenger.backend.exceptions.services.DatabaseException;
@@ -18,7 +17,6 @@ import java.sql.SQLException;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 
 
@@ -90,37 +88,23 @@ public class ChatService {
 
     public ChatListResponse getChats(Long userId) {
         try {
-
             Set<Long> chatIds = chatMembersRepository.getAllChatsOfTheMember(userId);
-            List<ChatSummary> chatSummaryList = new ArrayList<>();
-            UserSummary userSummary = userRepository.getUserSummaryByID(userId);
+            List<ChatSummary> chatSummariesList = new ArrayList<>();
 
             for (Long id : chatIds) {
-                Set<Long> memberIds = chatMembersRepository.getAllMembersOfTheChat(id);
-                List<Long> memberId = memberIds.stream().filter(a -> !Objects.equals(a, userId)).toList();
-                List<UserSummary> userSummaryList = new ArrayList<>();
-                userSummaryList.add(userSummary);
-                if (!memberId.isEmpty()) {
-                    userSummaryList.add(userRepository.getUserSummaryByID(memberId.getFirst()));
+                try {
+                    Set<Long> memberIds = chatMembersRepository.getAllMembersOfTheChat(id);
+                    List<UserSummary> userSummaryList = userRepository.getUserSummariesByIDs(memberIds);
+                    List<Message> messages = messagesRepository.getLastNMessagesInTheChat(1, id);
+                    chatSummariesList.add(new ChatSummary(id, userSummaryList, messages.isEmpty() ? null : toApiMessage(messages.getFirst())));
+                } catch (SQLException e) {
+                    //логи какие-нибудь - я хз :/
+                    //но глупо ронять весь метод из-за ошибки с одним чатом
                 }
-                List<Message> messages = messagesRepository.getLastNMessagesInTheChat(1, id);
-                chatSummaryList.add(new ChatSummary(id, userSummaryList, messages.isEmpty() ? null : toApiMessage(messages.getFirst())));
             }
-
-            return new ChatListResponse(chatSummaryList);
-
+            return new ChatListResponse(chatSummariesList);
         } catch (SQLException e) {
             throw new DatabaseException("GetChatList failed due to SQLException: " + e.getMessage(), e);
-        } catch (NoSuchUserException e) {
-            throw new DatabaseException(
-                    "NO_SUCH_USER", HttpStatus.NOT_FOUND,
-                    "GetChatList failed due to NoSuchUserException: " + e.getMessage(), e
-            );
-        } catch (NoSuchChatException e) {
-            throw new DatabaseException(
-                    "NO_SUCH_CHAT", HttpStatus.NOT_FOUND,
-                    "GetChatList failed due to NoSuchChatException: " + e.getMessage(), e
-            );
         }
     }
 
