@@ -32,4 +32,4 @@ function ChatListItem({ chat, isActive, onClick }: ChatListItemProps) {
     )
 }
 
-export default ChatListItem
+export default ChatListItem;

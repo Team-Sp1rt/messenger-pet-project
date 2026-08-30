@@ -1,24 +1,14 @@
 export interface Folder {
-    id: string
-    label: string
-    count?: number
+    id: string;
+    label: string;
+    count?: number;
 }
 
 export interface Chat {
-    id: string
-    name: string
-    lastMessage: string
-    time: string
-}
-
-export interface ChatListItemProps {
-    chat: Chat
-}
-
-export interface ChatFoldersProps {
-    folders: Folder[]
-    activeFolderId: string
-    onSelect: (id: string) => void
+    id: string;
+    name: string;
+    lastMessage: string;
+    time: string;
 }
 
 export interface SearchUsersPayload {
@@ -31,40 +21,40 @@ export interface SearchUsersResponse {
 }
 
 export interface UserSummary {
-    id: number
-    username: string
+    id: number;
+    username: string;
 }
 
 export interface BackendMessage {
-    id: number
-    chatId: number
-    userId: number
-    content: string
-    createdAt: string
+    id: number;
+    chatId: number;
+    userId: number;
+    content: string;
+    createdAt: string;
 }
 
 export interface ChatSummaryDto {
-    id: number
-    members: UserSummary[]
-    lastMessage: BackendMessage | null
+    id: number;
+    members: UserSummary[];
+    lastMessage: BackendMessage | null;
 }
 
 export interface ChatDto {
-    id: number
-    members: UserSummary[]
+    id: number;
+    members: UserSummary[];
 }
 
 export interface GetChatsResponse {
-    items: ChatSummaryDto[]
+    items: ChatSummaryDto[];
 }
 
 export interface CreateChatPayload {
-    memberId: number
+    memberId: number;
 }
 
 export interface ChatMessageUI {
-    id: string
-    content: string
-    time: string
-    isOwn: boolean
+    id: string;
+    content: string;
+    time: string;
+    isOwn: boolean;
 }

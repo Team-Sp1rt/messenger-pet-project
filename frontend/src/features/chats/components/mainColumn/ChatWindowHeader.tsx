@@ -20,4 +20,4 @@ function ChatWindowHeader({ chat }: ChatWindowHeaderProps) {
     )
 }
 
-export default ChatWindowHeader
+export default ChatWindowHeader;

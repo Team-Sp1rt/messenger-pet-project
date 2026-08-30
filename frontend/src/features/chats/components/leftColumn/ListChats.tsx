@@ -5,8 +5,7 @@ import ChatListItem from './ChatListItem'
 import type { Chat, Folder } from '../../types'
 
 const folders: Folder[] = [
-    { id: 'all', label: 'All' },
-    { id: 'hz', label: 'Hz' },
+    { id: 'all', label: 'All' }
 ]
 
 interface ListChatsProps {
@@ -16,7 +15,7 @@ interface ListChatsProps {
 }
 
 function ListChats({ chats, activeChatId, onSelectChat }: ListChatsProps) {
-    const [activeFolder, setActiveFolder] = useState('all')
+    const [activeFolder, setActiveFolder] = useState('all');
 
     return (
         <div className={styles.transition}>
@@ -36,4 +35,4 @@ function ListChats({ chats, activeChatId, onSelectChat }: ListChatsProps) {
     )
 }
 
-export default ListChats
+export default ListChats;

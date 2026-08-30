@@ -33,4 +33,4 @@ function ChatWindow({ chat, messages, onSend }: ChatWindowProps) {
     )
 }
 
-export default ChatWindow
+export default ChatWindow;

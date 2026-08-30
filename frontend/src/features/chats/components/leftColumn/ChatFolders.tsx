@@ -1,5 +1,11 @@
 import styles from '../../styles/ChatsLeftColumn.module.scss'
-import type { ChatFoldersProps } from '../../types'
+import type { Folder } from '../../types'
+
+interface ChatFoldersProps {
+    folders: Folder[]
+    activeFolderId: string
+    onSelect: (id: string) => void
+}
 
 function ChatFolders({ folders, activeFolderId, onSelect }: ChatFoldersProps) {
     return (
@@ -22,4 +28,4 @@ function ChatFolders({ folders, activeFolderId, onSelect }: ChatFoldersProps) {
     )
 }
 
-export default ChatFolders
+export default ChatFolders;

@@ -1,3 +1,28 @@
+@mixin scrollBar {
+    scrollbar-gutter: stable;
+
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+
+    &:hover {
+        scrollbar-color: #5a5a5a4d transparent;
+    }
+
+    &::-webkit-scrollbar {
+        width: 10px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background-color: transparent;
+        border-radius: 3px;
+        transition: background-color .2s ease;
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+        scrollbar-color: #c8c8c84d transparent;
+    }
+}
+
 .leftMainHeader {
     display: flex;
     
@@ -158,28 +183,8 @@
     flex: 1;
     min-height: 0;
     overflow-y: auto;
-    scrollbar-gutter: stable;
 
-    scrollbar-width: thin;
-    scrollbar-color: transparent transparent;
-
-    &:hover {
-        scrollbar-color: #5a5a5a4d transparent;
-    }
-
-    &::-webkit-scrollbar {
-        width: 10px;
-    }
-
-    &::-webkit-scrollbar-thumb {
-        background-color: transparent;
-        border-radius: 3px;
-        transition: background-color .2s ease;
-    }
-
-    &::-webkit-scrollbar-thumb:hover {
-        scrollbar-color: #c8c8c84d transparent;
-    }
+    @include scrollBar;
 }
 
 .chatItem {
