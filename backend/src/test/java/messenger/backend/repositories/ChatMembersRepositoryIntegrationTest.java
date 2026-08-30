@@ -64,7 +64,7 @@ public class ChatMembersRepositoryIntegrationTest {
     }
 
     @Test
-    void insertNewChatMember_thenGetAllMembersOfTheChat_returnsSetWithCorrectData() throws SQLException, NoSuchChatException {
+    void insertNewChatMember_thenGetAllMembersOfTheChat_returnsSetWithCorrectData() throws SQLException {
         List<Long> ids = givenFilledTablesReturnsListOfIDs();
 
         chatMembersRepository.insertNewChatMember(ids.get(FIRST_CHAT), ids.get(FIRST_USER));
