@@ -42,6 +42,9 @@ public class ChatService {
             chatMembersRepository.insertNewChatMember(chatId, request.getMemberId());
             chatMembersRepository.insertNewChatMember(chatId, creatorId);
 
+            // TODO: Тут тоже можно использовать новый метод,
+            //  особенно когда будем добавлять групповые чаты,
+            //  но уходит NoSuchUserException :/
             List<UserSummary> members = List.of(
                     userRepository.getUserSummaryByID(creatorId),
                     userRepository.getUserSummaryByID(request.getMemberId()));
