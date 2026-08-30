@@ -9,6 +9,7 @@ export interface Chat {
     name: string;
     lastMessage: string;
     time: string;
+    lastMessageAt: string | null;
 }
 
 export interface SearchUsersPayload {

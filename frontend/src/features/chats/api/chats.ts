@@ -12,12 +12,12 @@ export function searchUsersRequest(payload: SearchUsersPayload) {
 }
 
 export function getChatsRequest() {
-    return apiFetch<GetChatsResponse>('/chats')
+    return apiFetch<GetChatsResponse>('/chats');
 }
 
 export function createChatRequest(payload: CreateChatPayload) {
     return apiFetch<ChatDto>('/chats', {
         method: 'POST',
         body: JSON.stringify(payload),
-    })
+    });
 }
