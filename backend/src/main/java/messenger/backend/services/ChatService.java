@@ -10,6 +10,8 @@ import messenger.backend.repositories.ChatMembersRepository;
 import messenger.backend.repositories.ChatsRepository;
 import messenger.backend.repositories.MessagesRepository;
 import messenger.backend.repositories.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +24,8 @@ import java.util.Set;
 
 @Service
 public class ChatService {
+    private static final Logger log = LoggerFactory.getLogger(ChatService.class);
+
     private final ChatsRepository chatsRepository;
     private final ChatMembersRepository chatMembersRepository;
     private final UserRepository userRepository;
@@ -101,8 +105,7 @@ public class ChatService {
                     List<Message> messages = messagesRepository.getLastNMessagesInTheChat(1, id);
                     chatSummariesList.add(new ChatSummary(id, userSummaryList, messages.isEmpty() ? null : toApiMessage(messages.getFirst())));
                 } catch (SQLException e) {
-                    //логи какие-нибудь - я хз :/
-                    //но глупо ронять весь метод из-за ошибки с одним чатом
+                    log.error("Failed to get chat: chatId={}", id, e);
                 }
             }
             return new ChatListResponse(chatSummariesList);
