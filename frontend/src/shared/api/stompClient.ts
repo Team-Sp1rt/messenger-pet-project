@@ -5,7 +5,7 @@ const WS_URL = 'ws://localhost:8080/ws';
 let client: Client | null = null;
 
 export function connectStomp(
-    token: string,
+    getToken: () => string | null,
     onConnect: () => void,
     onFatalError: (message: string) => void
 ) {
@@ -15,7 +15,12 @@ export function connectStomp(
 
     client = new Client({
         brokerURL: WS_URL,
-        connectHeaders: { Authorization: `Bearer ${token}` },
+        beforeConnect: () => {
+            const token = getToken();
+            if (client) {
+                client.connectHeaders = { Authorization: `Bearer ${token ?? ''}` };
+            }
+        },
         reconnectDelay: 3000,
         onConnect,
         onStompError: (frame) => {
@@ -59,5 +64,5 @@ export function publishCommand(destination: string, token: string, body?: unknow
         destination,
         headers: { Authorization: `Bearer ${token}` },
         body: body !== undefined ? JSON.stringify(body) : '',
-    })
+    });
 }

@@ -3,15 +3,17 @@ import type { StompSubscription } from '@stomp/stompjs'
 import { connectStomp, disconnectStomp } from '../../shared/api/stompClient'
 import { subscribeChatEvents, subscribeCommandErrors, sendChatMessage } from '../../features/chats/api/chatSocket'
 import type { ChatEvent, WebSocketErrorPayload } from '../../features/chats/typesWs'
+import { isTokenExpired } from '../utils/jwt'
 
 interface UseChatSocketParams {
     token: string | null,
     chatIds: number[],
     onEvent: (chatId: number, event: ChatEvent) => void,
-    onCommandError: (error: WebSocketErrorPayload) => void
+    onCommandError: (error: WebSocketErrorPayload) => void,
+    onFatalError: (message: string, isAuthError: boolean) => void
 }
 
-export function useChatSocket({ token, chatIds, onEvent, onCommandError }: UseChatSocketParams) {
+export function useChatSocket({ token, chatIds, onEvent, onCommandError, onFatalError }: UseChatSocketParams) {
     const subscriptionsRef = useRef<Map<number, StompSubscription>>(new Map());
     const chatIdsRef = useRef<number[]>(chatIds);
     const tokenRef = useRef<string | null>(token);
@@ -27,41 +29,57 @@ export function useChatSocket({ token, chatIds, onEvent, onCommandError }: UseCh
 
             if (sub) subscriptionsRef.current.set(chatId, sub);
         })
-    }
+    };
+
+    const pruneStaleSubscriptions = () => {
+        const activeIds = new Set(chatIdsRef.current);
+ 
+        subscriptionsRef.current.forEach((sub, chatId) => {
+            if (!activeIds.has(chatId)) {
+                sub.unsubscribe();
+                subscriptionsRef.current.delete(chatId);
+            }
+        })
+    };
 
     useEffect(() => {
         chatIdsRef.current = chatIds;
+        pruneStaleSubscriptions();
         trySubscribeAll();
     }, [chatIds])
 
     useEffect(() => {
         tokenRef.current = token;
         if (!token) return;
-
+ 
         connectStomp(
-            token,
+            () => tokenRef.current,
             () => {
-                subscribeCommandErrors(token, onCommandError);
+                const t = tokenRef.current;
+                if (!t) return;
+                subscribeCommandErrors(t, onCommandError);
                 trySubscribeAll();
             },
             (message) => {
-                // TODO: протухший/невалидный токен здесь тоже прилетит как STOMP ERROR —
-                // можно завести отдельный колбэк и дёргать logout() из AuthProvider
-                console.error('STOMP fatal error:', message);
+                const authRelated = isTokenExpired(tokenRef.current);
+                onFatalError(message, authRelated);
             }
         )
-
+ 
         return () => {
             subscriptionsRef.current.forEach((sub) => sub.unsubscribe());
             subscriptionsRef.current.clear();
             disconnectStomp();
         }
-    }, [token])
+    }, [token]);
 
     const send = (chatId: number, content: string) => {
-        if (!tokenRef.current) return
-        sendChatMessage(chatId, content, tokenRef.current)
+        const t = tokenRef.current;
+        if (!t || isTokenExpired(t)) return false;
+ 
+        sendChatMessage(chatId, content, t);
+        return true;
     }
 
-    return { sendMessage: send }
+    return { sendMessage: send };
 }

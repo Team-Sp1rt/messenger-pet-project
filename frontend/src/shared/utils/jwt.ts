@@ -1,4 +1,6 @@
-export function isTokenExpired(token: string): boolean {
+export function isTokenExpired(token: string | null): boolean {
+    if (!token) return true;
+    
     const payload = token.split(".")[1];
 
     if (!payload) return true;
