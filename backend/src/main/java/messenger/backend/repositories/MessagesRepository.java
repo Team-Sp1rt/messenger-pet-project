@@ -103,6 +103,11 @@ public class MessagesRepository {
         }
     }
 
+    public List<Message> getNMessagesInTheChatBeforeMessageWithID(Integer n, Long chatID, Long messageID) throws SQLException, NoSuchMessageException {
+        Message message = getMessageById(messageID);
+        return getNMessagesInTheChatBeforeMessage(n, chatID, message);
+    }
+
     public List<Message> getNMessagesInTheChatBeforeMessage(Integer n, Long chatID, Message message) throws SQLException {
         String sql = """
             SELECT * FROM messages
@@ -146,8 +151,6 @@ public class MessagesRepository {
             DataSourceUtils.releaseConnection(connection, dataSource);
         }
     }
-
-    // этот метод видимо удалим.
 
     public Message getMessageById(Long messageId) throws SQLException, NoSuchMessageException {
         String sql = """

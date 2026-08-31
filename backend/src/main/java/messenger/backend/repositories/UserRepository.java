@@ -11,6 +11,7 @@ import java.sql.*;
 import java.time.LocalDate;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 @Repository
 public class UserRepository {
@@ -58,6 +59,56 @@ public class UserRepository {
             }
         } finally {
             DataSourceUtils.releaseConnection(connection, dataSource);
+        }
+    }
+
+    public UserSummary getUserSummaryByID(Long id) throws SQLException, NoSuchUserException {
+        String sql = """
+            SELECT id, username FROM users
+            WHERE id = ?;
+            """;
+
+        Connection connection = DataSourceUtils.getConnection(dataSource);
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setLong(1, id);
+
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                if (!resultSet.next()) {
+                    throw new NoSuchUserException("There is no such user with specified id");
+                }
+
+                return mapRowToUserSummary(resultSet);
+            }
+        } finally {
+            DataSourceUtils.releaseConnection(connection, dataSource);
+        }
+    }
+
+    public List<UserSummary> getUserSummariesByIDs(Set<Long> ids) throws SQLException {
+        String sql = """
+                SELECT id, username FROM users
+                WHERE id IN (""" + createEnoughQuestions(ids.size()) + ");";
+
+        Connection connection = DataSourceUtils.getConnection(dataSource);
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            setAllVariables(preparedStatement, ids);
+
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                return mapResultSetToUserSummariesList(resultSet);
+            }
+        } finally {
+            DataSourceUtils.releaseConnection(connection, dataSource);
+        }
+    }
+
+    private String createEnoughQuestions(int length) {
+        return "?, ".repeat(Math.max(0, length - 1)) + '?';
+    }
+
+    private void setAllVariables(PreparedStatement preparedStatement, Set<Long> ids) throws SQLException {
+        int i = 1;
+        for (Long id : ids) {
+            preparedStatement.setLong(i++, id);
         }
     }
 

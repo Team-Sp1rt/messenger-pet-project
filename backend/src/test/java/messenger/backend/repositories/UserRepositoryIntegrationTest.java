@@ -21,6 +21,7 @@ import java.sql.Statement;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -59,7 +60,7 @@ class UserRepositoryIntegrationTest {
     }
 
     @Test
-    void insertNewUser_thenGetUserByID_returnsCorrectData() throws SQLException, ReposException {
+    void insertNewUser_thenGetUserByID_returnsCorrectData() throws SQLException, NoSuchUserException {
         Long id = givenUserInDB("meow", LocalDate.of(2000, 1, 1));
 
         User user = userRepository.getUserByID(id);
@@ -72,9 +73,42 @@ class UserRepositoryIntegrationTest {
         assertThrows(NoSuchUserException.class, () -> userRepository.getUserByID(13L));
     }
 
+    @Test
+    void insertNewUser_thenGetUserSummaryByID_returnsCorrectData() throws SQLException, NoSuchUserException {
+        Long id = givenUserInDB("meow", LocalDate.of(2000, 1, 1));
+
+        UserSummary user = userRepository.getUserSummaryByID(id);
+
+        assertEquals(user, new UserSummary(id, "meow"));
+    }
+
+    @Test
+    void getUserSummaryByIDTest_incorrectID_throwsNoSuchUserException() {
+        assertThrows(NoSuchUserException.class, () -> userRepository.getUserSummaryByID(13L));
+    }
+
+    @Test
+    void insertNewUser_thenGetUserSummariesByIDs_returnsCorrectData() throws SQLException, NoSuchUserException {
+        Set<Long> ids = Set.of(
+                givenUserInDB("meow", LocalDate.of(2000, 1, 1), "1"),
+                givenUserInDB("woof", LocalDate.of(2000, 1, 1), "2"),
+                givenUserInDB("oink", LocalDate.of(2000, 1, 1), "3")
+        );
+
+
+        List<UserSummary> actualList = userRepository.getUserSummariesByIDs(ids);
+
+        List<UserSummary> expectedList = List.of(
+                new UserSummary(1L, "meow"),
+                new UserSummary(2L, "woof"),
+                new UserSummary(3L, "oink")
+        );
+        assertEquals(expectedList, actualList);
+    }
+
     //Фу
     @Test
-    void getNUserSummariesStartingWithSubstring_returnsCorrectSortedUserSummariesList() throws SQLException, ReposException {
+    void getNUserSummariesStartingWithSubstring_returnsCorrectSortedUserSummariesList() throws SQLException, NoSuchUserException {
         Long[] ids = new Long[5];
         ids[0] = givenUserInDB("meow", LocalDate.of(2000, 1, 1), "1");
         ids[1] = givenUserInDB("meow-meow", LocalDate.of(2000, 1, 1), "2");
@@ -99,7 +133,7 @@ class UserRepositoryIntegrationTest {
     }
 
     @Test
-    void changeUserBioByID_editingExistingUser_returnsCorrectData() throws SQLException, ReposException {
+    void changeUserBioByID_editingExistingUser_returnsCorrectData() throws SQLException, NoSuchUserException {
         Long id = givenUserInDB("meow", LocalDate.of(2000, 1, 1));
 
         User actualUser = userRepository.changeUserBioByIDReturnsUser(id, "meow-meow-meow");
@@ -109,16 +143,16 @@ class UserRepositoryIntegrationTest {
     }
 
     @Test
-    void changeUserBioByID_editingNotExistingUser_throwsNoSuchUserException() throws SQLException, ReposException {
+    void changeUserBioByID_editingNotExistingUser_throwsNoSuchUserException() {
         assertThrows(NoSuchUserException.class, () -> userRepository.changeUserBioByIDReturnsUser(52L, "meow-meow-meow"));
     }
 
 
-    private Long givenUserInDB(String username, LocalDate birthday) throws SQLException, ReposException {
+    private Long givenUserInDB(String username, LocalDate birthday) throws SQLException {
         return givenUserInDB(username, birthday, "");
     }
 
-    private Long givenUserInDB(String username, LocalDate birthday, String loginDifference) throws SQLException, ReposException {
+    private Long givenUserInDB(String username, LocalDate birthday, String loginDifference) throws SQLException {
         Long id = authorisationRepository.insertNewAuthorisationReturnsUserID("meow" + loginDifference, "meow-meow");
         userRepository.insertNewUser(new User(id, username, "", birthday));
         return id;
