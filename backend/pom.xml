@@ -159,6 +159,7 @@
                                 <documentationProvider>none</documentationProvider>
                                 <annotationLibrary>none</annotationLibrary>
                                 <useSwaggerUI>false</useSwaggerUI>
+                                <openApiNullable>false</openApiNullable>
                             </configOptions>
 
                             <generateApiTests>false</generateApiTests>

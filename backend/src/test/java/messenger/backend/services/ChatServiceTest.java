@@ -102,7 +102,7 @@ class ChatServiceTest {
         assertEquals(2, result.getItems().size());
         assertEquals(3L, result.getItems().getFirst().getId());
         assertEquals(2L, result.getItems().getLast().getId());
-        assertEquals(2L, result.getNextBeforeMessageId().get());
+        assertEquals(2L, result.getNextBeforeMessageId());
 
     }
 
@@ -127,7 +127,7 @@ class ChatServiceTest {
         assertEquals(3L, result.getItems().getFirst().getId());
         assertEquals(2L, result.getItems().get(1).getId());
         assertEquals(1L, result.getItems().getLast().getId());
-        assertNull(result.getNextBeforeMessageId().get());
+        assertNull(result.getNextBeforeMessageId());
     }
 
     @Test
@@ -150,7 +150,7 @@ class ChatServiceTest {
         assertEquals(2, result.getItems().size());
         assertEquals(2L, result.getItems().getFirst().getId());
         assertEquals(1L, result.getItems().getLast().getId());
-        assertNull(result.getNextBeforeMessageId().get());
+        assertNull(result.getNextBeforeMessageId());
     }
 
     @Test
@@ -189,15 +189,15 @@ class ChatServiceTest {
         List<UserSummary> expectedFirst = List.of(new UserSummary(user.id(), user.username()), new UserSummary(firstMember.id(), firstMember.username()));
 
         assertEquals(expectedFirst, firstChat.getMembers());
-        assertEquals(lastMessage.id(), firstChat.getLastMessage().get().getId());
-        assertEquals(lastMessage.chatID(), firstChat.getLastMessage().get().getChatId());
-        assertEquals(lastMessage.userID(), firstChat.getLastMessage().get().getUserId());
-        assertEquals(lastMessage.content(), firstChat.getLastMessage().get().getContent());
-        assertEquals(lastMessage.createdAt().toInstant(), firstChat.getLastMessage().get().getCreatedAt().toInstant());
+        assertEquals(lastMessage.id(), firstChat.getLastMessage().getId());
+        assertEquals(lastMessage.chatID(), firstChat.getLastMessage().getChatId());
+        assertEquals(lastMessage.userID(), firstChat.getLastMessage().getUserId());
+        assertEquals(lastMessage.content(), firstChat.getLastMessage().getContent());
+        assertEquals(lastMessage.createdAt().toInstant(), firstChat.getLastMessage().getCreatedAt().toInstant());
 
         List<UserSummary> expectedSecond = List.of(new UserSummary(user.id(), user.username()), new UserSummary(secondMember.id(), secondMember.username()));
         assertEquals(expectedSecond, secondChat.getMembers());
-        assertNull(secondChat.getLastMessage().get());
+        assertNull(secondChat.getLastMessage());
     }
 
     @Test
