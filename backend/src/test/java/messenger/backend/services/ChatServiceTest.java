@@ -2,7 +2,6 @@ package messenger.backend.services;
 
 import messenger.backend.dtos.Message;
 import messenger.backend.dtos.User;
-import messenger.backend.exceptions.repostitories.NoSuchChatException;
 import messenger.backend.exceptions.repostitories.ReposException;
 import messenger.backend.exceptions.repostitories.NoSuchMessageException;
 import messenger.backend.exceptions.repostitories.NoSuchUserException;
