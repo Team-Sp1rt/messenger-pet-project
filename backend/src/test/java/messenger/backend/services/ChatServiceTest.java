@@ -1,6 +1,7 @@
 package messenger.backend.services;
 
 import messenger.backend.dtos.Message;
+import messenger.backend.dtos.User;
 import messenger.backend.exceptions.repostitories.ReposException;
 import messenger.backend.exceptions.repostitories.NoSuchMessageException;
 import messenger.backend.exceptions.repostitories.NoSuchUserException;
@@ -23,6 +24,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
 
@@ -100,7 +102,7 @@ class ChatServiceTest {
         assertEquals(2, result.getItems().size());
         assertEquals(3L, result.getItems().getFirst().getId());
         assertEquals(2L, result.getItems().getLast().getId());
-        assertEquals(2L, result.getNextBeforeMessageId().get());
+        assertEquals(2L, result.getNextBeforeMessageId());
 
     }
 
@@ -125,7 +127,7 @@ class ChatServiceTest {
         assertEquals(3L, result.getItems().getFirst().getId());
         assertEquals(2L, result.getItems().get(1).getId());
         assertEquals(1L, result.getItems().getLast().getId());
-        assertNull(result.getNextBeforeMessageId().get());
+        assertNull(result.getNextBeforeMessageId());
     }
 
     @Test
@@ -147,7 +149,7 @@ class ChatServiceTest {
         assertEquals(2, result.getItems().size());
         assertEquals(2L, result.getItems().getFirst().getId());
         assertEquals(1L, result.getItems().getLast().getId());
-        assertNull(result.getNextBeforeMessageId().get());
+        assertNull(result.getNextBeforeMessageId());
     }
 
     @Test
@@ -184,14 +186,15 @@ class ChatServiceTest {
 
 
         assertThat(firstChat.getMembers()).containsExactlyInAnyOrder(user, firstMember);
-        assertEquals(lastMessage.id(), firstChat.getLastMessage().get().getId());
-        assertEquals(lastMessage.chatID(), firstChat.getLastMessage().get().getChatId());
-        assertEquals(lastMessage.userID(), firstChat.getLastMessage().get().getUserId());
-        assertEquals(lastMessage.content(), firstChat.getLastMessage().get().getContent());
-        assertEquals(lastMessage.createdAt().toInstant(), firstChat.getLastMessage().get().getCreatedAt().toInstant());
+        assertNotNull(firstChat.getLastMessage());
 
+        assertEquals(lastMessage.id(), firstChat.getLastMessage().getId());
+        assertEquals(lastMessage.chatID(), firstChat.getLastMessage().getChatId());
+        assertEquals(lastMessage.userID(), firstChat.getLastMessage().getUserId());
+        assertEquals(lastMessage.content(), firstChat.getLastMessage().getContent());
+        assertEquals(lastMessage.createdAt().toInstant(), firstChat.getLastMessage().getCreatedAt().toInstant());
         assertThat(secondChat.getMembers()).containsExactlyInAnyOrder(user, secondMember);
-        assertNull(secondChat.getLastMessage().get());
+        assertNull(secondChat.getLastMessage());
     }
 
     @Test
