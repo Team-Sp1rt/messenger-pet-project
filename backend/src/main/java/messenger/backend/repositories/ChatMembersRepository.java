@@ -1,6 +1,5 @@
 package messenger.backend.repositories;
 
-import messenger.backend.exceptions.repostitories.NoSuchChatException;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Repository;
 
@@ -38,7 +37,7 @@ public class ChatMembersRepository {
         }
     }
 
-    public Set<Long> getAllMembersOfTheChat(Long chatID) throws SQLException, NoSuchChatException {
+    public Set<Long> getAllMembersOfTheChat(Long chatID) throws SQLException {
         String sql = """
             SELECT user_id FROM chat_members
             WHERE chat_id = ?;
@@ -53,11 +52,6 @@ public class ChatMembersRepository {
 
                 while (resultSet.next()) {
                     userIDsSet.add(resultSet.getLong("user_id"));
-                }
-
-                //как будто мы должны гарантировать недостижимость этой ветки и нахуй убрать эту проверку и ошибку
-                if (userIDsSet.isEmpty()) {
-                    throw new NoSuchChatException("Specified chat doesn't have any users");
                 }
 
                 return userIDsSet;

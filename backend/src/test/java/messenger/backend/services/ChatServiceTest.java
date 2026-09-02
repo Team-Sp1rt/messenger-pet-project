@@ -29,6 +29,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -67,17 +68,17 @@ class ChatServiceTest {
 
         CreateChatRequest request = new CreateChatRequest(memberId);
 
-        User creator = new User(creatorId, "creator", "", LocalDate.of(2006, 1, 30));
-        User member = new User(memberId, "member", "", LocalDate.of(2006, 5, 30));
+        UserSummary creator = new UserSummary(creatorId, "creator");
+        UserSummary member = new UserSummary(memberId, "member");
 
         when(chatsRepository.insertNewChatReturnsChatID()).thenReturn(chatId);
-        when(userRepository.getUserByID(creatorId)).thenReturn(creator);
-        when(userRepository.getUserByID(memberId)).thenReturn(member);
+        when(userRepository.getUserSummaryByID(creatorId)).thenReturn(creator);
+        when(userRepository.getUserSummaryByID(memberId)).thenReturn(member);
 
         Chat result = chatService.createChat(request, creatorId);
 
         assertEquals(chatId, result.getId());
-        List<UserSummary> expected = List.of(new UserSummary(creator.id(), creator.username()), new UserSummary(member.id(), member.username()));
+        List<UserSummary> expected = List.of(creator, member);
         assertEquals(expected, result.getMembers());
         verify(chatMembersRepository).insertNewChatMember(chatId, creatorId);
         verify(chatMembersRepository).insertNewChatMember(chatId, memberId);
@@ -141,8 +142,7 @@ class ChatServiceTest {
         Message middleMessage = new Message(2L, chatId, 2L, "middleMessage", Timestamp.from(Instant.parse("2026-08-24T12:01:00Z")));
         Message oldestMessage = new Message(1L, chatId, userId, "oldestMessage", Timestamp.from(Instant.parse("2026-08-24T12:00:00Z")));
 
-        when(messagesRepository.getMessageById(beforeId)).thenReturn(newestMessage);
-        when(messagesRepository.getNMessagesInTheChatBeforeMessage(limit + 1, chatId, newestMessage))
+        when(messagesRepository.getNMessagesInTheChatBeforeMessageWithID(limit + 1, chatId, newestMessage.id()))
                 .thenReturn(List.of(middleMessage, oldestMessage));
 
         MessagePage result = chatService.getChatMessages(chatId, beforeId, limit);
@@ -154,24 +154,23 @@ class ChatServiceTest {
     }
 
     @Test
-    void getChats_userHasChats_returnsCorrectSummaries() throws SQLException, NoSuchUserException, NoSuchChatException {
+    void getChats_userHasChats_returnsCorrectSummaries() throws SQLException, NoSuchUserException {
         long userId = 1L;
         long firstMemberId = 2L;
         long secondMemberId = 3L;
         long firstChatId = 10L;
         long secondChatId = 20L;
 
-        User user = new User(userId, "current-user", "", LocalDate.of(2000, 1, 1));
-        User firstMember = new User(firstMemberId, "first-member", "", LocalDate.of(2001, 2, 2));
-        User secondMember = new User(secondMemberId, "second-member", "", LocalDate.of(2002, 3, 3));
+        UserSummary user = new UserSummary(userId, "current-user");
+        UserSummary firstMember = new UserSummary(firstMemberId, "first-member");
+        UserSummary secondMember = new UserSummary(secondMemberId, "second-member");
         Message lastMessage = new Message(100L, firstChatId, firstMemberId, "last message", Timestamp.from(Instant.parse("2026-08-24T12:00:00Z")));
 
         when(chatMembersRepository.getAllChatsOfTheMember(userId)).thenReturn(Set.of(firstChatId, secondChatId));
         when(chatMembersRepository.getAllMembersOfTheChat(firstChatId)).thenReturn(Set.of(userId, firstMemberId));
         when(chatMembersRepository.getAllMembersOfTheChat(secondChatId)).thenReturn(Set.of(userId, secondMemberId));
-        when(userRepository.getUserByID(userId)).thenReturn(user);
-        when(userRepository.getUserByID(firstMemberId)).thenReturn(firstMember);
-        when(userRepository.getUserByID(secondMemberId)).thenReturn(secondMember);
+        when(userRepository.getUserSummariesByIDs(Set.of(userId, firstMemberId))).thenReturn(List.of(user, firstMember));
+        when(userRepository.getUserSummariesByIDs(Set.of(userId, secondMemberId))).thenReturn(List.of(user, secondMember));
         when(messagesRepository.getLastNMessagesInTheChat(1, firstChatId)).thenReturn(List.of(lastMessage));
         when(messagesRepository.getLastNMessagesInTheChat(1, secondChatId)).thenReturn(List.of());
 
@@ -186,17 +185,16 @@ class ChatServiceTest {
                 .filter(chat -> chat.getId().equals(secondChatId))
                 .findFirst().orElseThrow();
 
-        List<UserSummary> expectedFirst = List.of(new UserSummary(user.id(), user.username()), new UserSummary(firstMember.id(), firstMember.username()));
 
-        assertEquals(expectedFirst, firstChat.getMembers());
+        assertThat(firstChat.getMembers()).containsExactlyInAnyOrder(user, firstMember);
+        assertNotNull(firstChat.getLastMessage());
+
         assertEquals(lastMessage.id(), firstChat.getLastMessage().getId());
         assertEquals(lastMessage.chatID(), firstChat.getLastMessage().getChatId());
         assertEquals(lastMessage.userID(), firstChat.getLastMessage().getUserId());
         assertEquals(lastMessage.content(), firstChat.getLastMessage().getContent());
         assertEquals(lastMessage.createdAt().toInstant(), firstChat.getLastMessage().getCreatedAt().toInstant());
-
-        List<UserSummary> expectedSecond = List.of(new UserSummary(user.id(), user.username()), new UserSummary(secondMember.id(), secondMember.username()));
-        assertEquals(expectedSecond, secondChat.getMembers());
+        assertThat(secondChat.getMembers()).containsExactlyInAnyOrder(user, secondMember);
         assertNull(secondChat.getLastMessage());
     }
 
