@@ -23,7 +23,10 @@ function ChatsPage() {
     const { token, userId: currentUserId, logout } = useAuth();
 
     const { chats, chatIds, findChatIdByMember, createChatWithUser, touchChatPreview } = useChats({ currentUserId });
-    const { messagesByChat, loadHistory, appendMessage, replaceMessage, removeMessage } = useChatMessages(currentUserId);
+    const { messagesByChat, loadHistory, loadOlderMessages,
+            hasMoreHistory, isLoadingOlder, appendMessage,
+            replaceMessage, removeMessage, } = useChatMessages(currentUserId);
+
     const { notice, notifyError, notifyInfo, dismiss } = useNotice();
 
     const [activeChatId, setActiveChatId] = useState<string | null>(null);
@@ -75,13 +78,9 @@ function ChatsPage() {
 
     const handleSendMessage = (content: string) => {
         if (!activeChatId) return;
-
-        const sent = sendMessage(Number(activeChatId), content);
-
-        if (!sent) {
-            notifyError('Failed to send: session expired');
-        }
-    };
+ 
+        sendMessage(Number(activeChatId), content);
+    }
 
     const activeChat = chats.find((c) => c.id === activeChatId) ?? null;
 
@@ -104,6 +103,9 @@ function ChatsPage() {
                 <ChatWindow
                     chat={activeChat}
                     messages={activeChatId ? messagesByChat[activeChatId] ?? [] : []}
+                    hasMoreHistory={activeChatId ? hasMoreHistory(activeChatId) : false}
+                    isLoadingOlder={activeChatId ? isLoadingOlder(activeChatId) : false}
+                    onLoadMore={() => activeChatId && loadOlderMessages(activeChatId)}
                     onSend={handleSendMessage}
                 />
             </div>

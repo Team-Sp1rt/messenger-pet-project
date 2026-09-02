@@ -2,13 +2,14 @@ import type { ChatSummaryDto, ChatDto, Chat } from '../types'
 
 export function mapChatSummary(dto: ChatSummaryDto, currentUserId: number | null): Chat {
     const other = dto.members.find(m => m.id !== currentUserId) ?? dto.members[0];
-
+    const hasLastMessage = Boolean(dto.lastMessage?.createdAt);
+ 
     return {
         id: String(dto.id),
         name: other.username,
-        lastMessage: dto.lastMessage?.content ?? '',
-        time: dto.lastMessage ? formatChatTime(dto.lastMessage.createdAt) : '',
-        lastMessageAt: dto.lastMessage?.createdAt ?? null
+        lastMessage: hasLastMessage ? (dto.lastMessage?.content ?? '') : '',
+        time: hasLastMessage ? formatChatTime(dto.lastMessage!.createdAt) : '',
+        lastMessageAt: hasLastMessage ? dto.lastMessage!.createdAt : null
     }
 }
 
