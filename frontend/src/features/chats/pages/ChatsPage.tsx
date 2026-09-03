@@ -5,7 +5,7 @@ import styles from '../styles/Chats.module.css'
 import { useAuth } from '../../../shared/context/AuthContext'
 
 import type { ChatEvent } from '../typesWs'
-import type { Folder, UserSummary } from '../../chats/types'
+import type { ChatMessageUI, Folder, UserSummary } from '../../chats/types'
 
 import { useChatSocket } from '../../../shared/hooks/useChatSocket'
 import { useNotice } from '../hooks/UseNotice'
@@ -40,6 +40,8 @@ function ChatsPage() {
     const [activeFolder, setActiveFolder] = useState('all');
     const [isFocused, setIsFocused] = useState(false);
 
+    const [editingMessage, setEditingMessage] = useState<ChatMessageUI | null>(null);
+
     const handleChatEvent = (chatId: number, event: ChatEvent) => {
         const chatKey = String(chatId);
 
@@ -57,7 +59,7 @@ function ChatsPage() {
         }
     };
 
-    const { sendMessage } = useChatSocket({
+    const { sendMessage, editMessage, deleteMessage } = useChatSocket({
         token,
         chatIds,
         onEvent: handleChatEvent,
@@ -96,6 +98,25 @@ function ChatsPage() {
  
         sendMessage(Number(activeChatId), content);
     }
+
+    const handleEditMessage = (message: ChatMessageUI) => {
+        setEditingMessage(message);
+    };
+
+    const handleSubmitEdit = (content: string) => {
+        if (!activeChatId || !editingMessage) return;
+        editMessage(Number(activeChatId), Number(editingMessage.id), content);
+        setEditingMessage(null);
+    };
+
+    const handleCancelEdit = () => {
+        setEditingMessage(null);
+    };
+
+    const handleDeleteMessage = (messageId: string) => {
+        if (!activeChatId) return;
+        deleteMessage(Number(activeChatId), Number(messageId));
+    };
 
     const activeChat = chats.find((c) => c.id === activeChatId) ?? null;
 
@@ -146,6 +167,11 @@ function ChatsPage() {
                     onLoadMore={() => activeChatId && loadOlderMessages(activeChatId)}
                     onSend={handleSendMessage}
                     onClose={closeChat}
+                    onEditMessage={handleEditMessage}
+                    onDeleteMessage={handleDeleteMessage}
+                    editingMessage={editingMessage}
+                    onSubmitEdit={handleSubmitEdit}
+                    onCancelEdit={handleCancelEdit}
                 />
             </div>
         </div>

@@ -13,21 +13,26 @@ interface ChatWindowProps {
     onLoadMore: () => void
     onSend: (content: string) => void
     onClose: () => void
+    onEditMessage: (message: ChatMessageUI) => void
+    onDeleteMessage: (messageId: string) => void
+    editingMessage: ChatMessageUI | null
+    onSubmitEdit: (content: string) => void
+    onCancelEdit: () => void
 }
 
-function ChatWindow({ chat, messages, hasMoreHistory, isLoadingOlder, onLoadMore, onSend, onClose }: ChatWindowProps) {
+function ChatWindow({ chat, messages, hasMoreHistory, isLoadingOlder, onLoadMore, onSend, onClose, onEditMessage, onDeleteMessage, editingMessage, onSubmitEdit, onCancelEdit }: ChatWindowProps) {
     useEffect(() => {
         if (!chat) return;
 
         const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') {
+            if (e.key === 'Escape' && !editingMessage) {
                 onClose();
             }
         };
 
         document.addEventListener('keydown', handleKeyDown);
         return () => document.removeEventListener('keydown', handleKeyDown);
-    }, [chat, onClose]);
+    }, [chat, onClose, editingMessage]);
     
     if (!chat) {
         return (
@@ -51,8 +56,15 @@ function ChatWindow({ chat, messages, hasMoreHistory, isLoadingOlder, onLoadMore
                 hasMore={hasMoreHistory}
                 isLoadingOlder={isLoadingOlder}
                 onLoadMore={onLoadMore}
+                onEditMessage={onEditMessage}
+                onDeleteMessage={onDeleteMessage}
             />
-            <MessageInput onSend={onSend} />
+            <MessageInput
+                onSend={onSend}
+                editingMessage={editingMessage}
+                onSubmitEdit={onSubmitEdit}
+                onCancelEdit={onCancelEdit}
+            />
         </div>
     )
 }

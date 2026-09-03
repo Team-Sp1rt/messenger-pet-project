@@ -22,7 +22,8 @@ export function useUserSearch(currentUserId: number | null) {
         debounceRef.current = setTimeout(async () => {
             try {
                 const res = await searchUsersRequest({ username: trimmed });
-                setResults(res.items.filter((user) => String(user.id) !== String(currentUserId)));
+                const filterRes = res.items.filter((user) => String(user.id) !== String(currentUserId)).splice(0, 10);
+                setResults(filterRes);
             } catch {
                 setResults([]);
             } finally {

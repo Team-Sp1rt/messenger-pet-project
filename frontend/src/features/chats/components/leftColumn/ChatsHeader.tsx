@@ -71,10 +71,11 @@ function ChatsHeader({ query, onQueryChange, isFocused, setIsFocused, reset }: C
                     name='search_people'
                     type='text'
                     placeholder='Search'
+                    autoComplete="off"
                     className={styles.input}
                     value={query}
                     onChange={(e) => onQueryChange(e.target.value)}
-                    onFocus={() => setIsFocused(true)}
+                    onClick={() => setIsFocused(true)}
                     onBlur={() => setIsFocused(false)}
                 />
             </div>

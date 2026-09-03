@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import type { StompSubscription } from '@stomp/stompjs'
 import { connectStomp, disconnectStomp } from '../../shared/api/stompClient'
-import { subscribeChatEvents, subscribeCommandErrors, sendChatMessage } from '../../features/chats/api/chatSocket'
+import { subscribeChatEvents, subscribeCommandErrors, sendChatMessage, editChatMessage, deleteChatMessage } from '../../features/chats/api/chatSocket'
 import type { ChatEvent, WebSocketErrorPayload } from '../../features/chats/typesWs'
 import { isTokenExpired } from '../utils/jwt'
 
@@ -81,5 +81,21 @@ export function useChatSocket({ token, chatIds, onEvent, onCommandError, onFatal
         return true;
     }
 
-    return { sendMessage: send };
+    const edit = (chatId: number, messageId: number, content: string) => {
+        const t = tokenRef.current;
+        if (!t || isTokenExpired(t)) return false;
+
+        editChatMessage(chatId, messageId, content, t);
+        return true;
+    }
+
+    const remove = (chatId: number, messageId: number) => {
+        const t = tokenRef.current;
+        if (!t || isTokenExpired(t)) return false;
+
+        deleteChatMessage(chatId, messageId, t);
+        return true;
+    }
+
+    return { sendMessage: send, editMessage: edit, deleteMessage: remove };
 }

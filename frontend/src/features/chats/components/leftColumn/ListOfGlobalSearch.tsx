@@ -1,22 +1,31 @@
 import type { UserSummary } from '../../types'
 import { getAvatarGradient, getInitial } from '../../utils/avatar'
 import styles from '../../styles/ChatsLeftColumn.module.scss'
+import { useState } from 'react';
 
 interface ListOfGlobalSearchProps {
-    query: string
-    isSearching: boolean
-    results: UserSummary[]
+    query: string,
+    isSearching: boolean,
+    results: UserSummary[],
     onSelectUser: (user: UserSummary) => void
 }
 
 function ListOfGlobalSearch({ query, isSearching, results, onSelectUser }: ListOfGlobalSearchProps) {
+    const [isShowMore, setIsShowMore] = useState(false);
+    
     const hasQuery = query.trim().length > 0;
+    const visibleResults = isShowMore ? results : results.slice(0, 5);
+    const showMoreButtonVisible = results.length > 5;
 
     return (
         <div className={styles.globalSearchWrapper}>
             <div className={styles.globalSearchHeader}>
                 <span className={styles.globalSearchTitle}>Global Search</span>
-                <button className={styles.globalSearchShowMore}>Show More</button>
+                {showMoreButtonVisible && (
+                    <button className={styles.globalSearchShowMore} onClick={() => setIsShowMore((prev) => !prev)}>
+                        {isShowMore ? 'Show Less' : 'Show More'}
+                    </button>
+                )}
             </div>
 
             <div className={styles.globalSearch}>
@@ -28,7 +37,7 @@ function ListOfGlobalSearch({ query, isSearching, results, onSelectUser }: ListO
                     <div className={styles.globalSearchEmpty}>Никого не найдено</div>
                 )}
 
-                {hasQuery && !isSearching && results.map((user) => (
+                {hasQuery && !isSearching && visibleResults.map((user) => (
                     <div
                         key={user.id}
                         className={styles.globalSearchItem}

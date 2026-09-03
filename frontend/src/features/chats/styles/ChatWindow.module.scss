@@ -1,6 +1,4 @@
 @mixin scrollBar {
-    scrollbar-gutter: stable;
-
     scrollbar-width: thin;
     scrollbar-color: transparent transparent;
 
@@ -182,25 +180,93 @@
     flex-shrink: 0;
 
     .textInputWrapper {
-        @include scrollBar;
-
-        max-height: 10rem;
-        overflow-y: auto;
-
         position: relative;
         display: flex;
-        flex-direction: row;
+        flex-direction: column;
         flex: 1;
-        
-        border-radius: 1.5rem;
-        padding: .25rem 2rem .25rem .25rem;
+
+        border-radius: 1.25rem;
+        padding: .25rem;
         box-sizing: border-box;
         background-color: var(--bg-input);
     }
 
+    .editWrapper {
+        display: flex;
+        align-items: center;
+        margin: .125rem 0 .5rem 0;
+        line-height: 1.3125;
+
+        .editingBannerIcon {
+            flex-shrink: 0;
+            padding: .5rem;
+            color: var(--folders-color);
+        }
+    }
+
+    .editingBanner {
+        display: flex;
+        align-items: flex-start;
+        flex-grow: 1;
+        min-width: 0;
+        gap: .625rem;
+        padding: .125rem 0 .125rem .5rem;
+        border-left: 3px solid var(--folders-color);
+        border-radius: .25rem;
+        background: rgba(255, 255, 255, .04);
+    }
+
+    .editingBannerText {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        line-height: 1.125rem;
+    }
+
+    .editingBannerTitle {
+        font-size: .875rem;
+        font-weight: 700;
+        color: var(--folders-color);
+    }
+
+    .editingBannerPreview {
+        font-size: .875rem;
+        color: var(--text-secondary);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .cancelEditButton {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: .5rem;
+        background: transparent;
+        border: none;
+        color: var(--text-secondary);
+        cursor: pointer;
+
+        &:hover {
+            opacity: .7;
+        }
+    }
+
+    .inputRow {
+        @include scrollBar;
+
+        max-height: 14rem;
+        overflow-y: auto;
+
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+    }
+
     .placeholder {
         position: absolute;
-        top: .75rem;
+        bottom: .75rem;
         left: 1.25rem;
         margin: 0;
         color: var(--text-input-placeholder);
@@ -211,7 +277,7 @@
 
     .textInput {
         display: block;
-        width: 100%;
+        width: 96%;
         height: 100%;
         color: #fff;
         font-family: inherit;
@@ -250,5 +316,81 @@
         &:hover:not(:disabled) {
             opacity: .85;
         }
+    }
+}
+
+.overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: rgba(0, 0, 0, 0.45);
+}
+
+.modal {
+    max-width: 22.5rem;
+    padding: 1rem 1.5rem 1.1875rem;
+
+    background: #202020;
+    border-radius: 2rem;
+
+    box-sizing: border-box;
+}
+
+.modal h2 {
+    margin: 0 0 18px;
+
+    color: #fff;
+    font-size: 1.17em;
+    font-weight: 600;
+}
+
+.modal p {
+    margin: 0;
+    font-weight: 500;
+
+    color: #e6e6e6;
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+.actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+
+    margin-top: 24px;
+}
+
+.actions button {
+    padding: 8px 12px;
+
+    border: none;
+    background: transparent;
+    border-radius: 1rem;
+
+    font-size: 1rem;
+    font-weight: 500;
+
+    cursor: pointer;
+}
+
+.cancel {
+    color: var(--folders-color);
+
+    &:hover {
+        background-color: rgba(123, 113, 198, 0.09);
+    }
+}
+
+.delete {
+    color: var(--button-delete-danger);
+
+    &:hover {
+        background-color: rgba(227, 57, 53, 0.09);
     }
 }

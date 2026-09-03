@@ -1,27 +1,35 @@
 import type { ChatMessageUI } from '../../types'
 import styles from '../../styles/ChatWindow.module.scss'
-import { useEffect, useLayoutEffect, useRef } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import ContextMenu, { type ContextMenuItem } from './ContextMenu'
+import { Copy, Pencil, Trash2 } from 'lucide-react';
+import DeleteMessageModal from './DeleteMessagesModal';
 
 interface MessagesListProps {
     chatId: string,
     messages: ChatMessageUI[],
     hasMore: boolean,
     isLoadingOlder: boolean,
-    onLoadMore: () => void | Promise<void>
+    onLoadMore: () => void | Promise<void>,
+    onEditMessage: (message: ChatMessageUI) => void,
+    onDeleteMessage: (messageId: string) => void,
 }
 
 const BOTTOM_THRESHOLD_PX = 120;
 
-function MessagesList({ chatId, messages, hasMore, isLoadingOlder, onLoadMore }: MessagesListProps) {
+function MessagesList({ chatId, messages, hasMore, isLoadingOlder, onLoadMore, onEditMessage, onDeleteMessage }: MessagesListProps) {
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const sentinelRef = useRef<HTMLDivElement>(null);
-    const prevChatIdRef = useRef<string | null>(null);
+    const prevChatIdRef = useRef<string | null>(chatId);
     const isLoadingRef = useRef(false);
     const hasInitiallyScrolledRef = useRef(false);
 
     const prevMessagesLengthRef = useRef(0);
     const prevLastMessageIdRef = useRef<string | null>(null);
     const wasNearBottomRef = useRef(true);
+
+    const [deleteMessageId, setDeleteMessageId] = useState<string | null>(null);
+    const [contextMenu, setContextMenu] = useState<{ x: number; y: number; message: ChatMessageUI } | null>(null);
 
     useEffect(() => {
         if (chatId === prevChatIdRef.current) return;
@@ -31,6 +39,7 @@ function MessagesList({ chatId, messages, hasMore, isLoadingOlder, onLoadMore }:
         prevMessagesLengthRef.current = 0;
         prevLastMessageIdRef.current = null;
         wasNearBottomRef.current = true;
+        setContextMenu(null);
     }, [chatId]);
 
     if (scrollContainerRef.current) {
@@ -109,6 +118,45 @@ function MessagesList({ chatId, messages, hasMore, isLoadingOlder, onLoadMore }:
         return () => observer.disconnect();
     }, [hasMore, isLoadingOlder, onLoadMore, chatId]);
 
+    const handleContextMenu = (e: React.MouseEvent, message: ChatMessageUI) => {
+        e.preventDefault();
+        setContextMenu({ x: e.clientX, y: e.clientY, message });
+    };
+
+    const buildMenuItems = (message: ChatMessageUI): ContextMenuItem[] => {
+        const items: ContextMenuItem[] = [];
+
+        if (message.isOwn) {
+            items.push({
+                key: 'edit',
+                label: 'Изменить',
+                icon: <Pencil />,
+                onClick: () => onEditMessage(message),
+            });
+        }
+
+        items.push(
+            {
+                key: 'copy',
+                label: 'Копировать текст',
+                icon: <Copy />,
+                onClick: () => { navigator.clipboard.writeText(message.content); },
+            }
+        );
+
+        if (message.isOwn) {
+            items.push({
+                key: 'delete',
+                label: 'Удалить',
+                danger: true,
+                icon: <Trash2 />,
+                onClick: () => setDeleteMessageId(message.id),
+            });
+        }
+
+        return items;
+    };
+
     return (
         <div className={styles.messagesAreaWrapper} ref={scrollContainerRef}>
             <div className={styles.messagesArea}>
@@ -123,6 +171,7 @@ function MessagesList({ chatId, messages, hasMore, isLoadingOlder, onLoadMore }:
                         key={message.id}
                         data-message-id={message.id}
                         className={`${styles.messageRow} ${message.isOwn ? styles.own : styles.other}`}
+                        onContextMenu={(e) => handleContextMenu(e, message)}
                     >
                         <div className={`${styles.bubble} ${message.isOwn ? styles.bubbleOwn : styles.bubbleOther}`}>
                             {message.content}
@@ -131,6 +180,25 @@ function MessagesList({ chatId, messages, hasMore, isLoadingOlder, onLoadMore }:
                     </div>
                 ))}
             </div>
+
+            {contextMenu && (
+                <ContextMenu
+                    x={contextMenu.x}
+                    y={contextMenu.y}
+                    items={buildMenuItems(contextMenu.message)}
+                    onClose={() => setContextMenu(null)}
+                />
+            )}
+
+            {deleteMessageId && (
+                <DeleteMessageModal
+                    onCancel={() => setDeleteMessageId(null)}
+                    onConfirm={() => {
+                        onDeleteMessage(deleteMessageId);
+                        setDeleteMessageId(null);
+                    }}
+                />
+            )}
         </div>
     )
 }
