@@ -14,8 +14,9 @@
     --bg-input: #2c2c2c;
     --text-primary: #e8e8e8;
     --text-secondary: #aaaaaa;
+    --text-input-placeholder: #9EA7AF;
     --accent: #1e7d6f;
     --accent-hover: #24968a;
     --folders-color: #8774e1;
-    --text-input-placeholder: #9EA7AF;
+    --border-color: #303030;
 }

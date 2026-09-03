@@ -2,8 +2,8 @@ import styles from '../../styles/ChatsLeftColumn.module.scss'
 import type { Folder } from '../../types'
 
 interface ChatFoldersProps {
-    folders: Folder[]
-    activeFolderId: string
+    folders: Folder[],
+    activeFolderId: string,
     onSelect: (id: string) => void
 }
 

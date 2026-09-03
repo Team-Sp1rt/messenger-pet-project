@@ -5,31 +5,40 @@ import styles from '../styles/Chats.module.css'
 import { useAuth } from '../../../shared/context/AuthContext'
 
 import type { ChatEvent } from '../typesWs'
-import type { UserSummary } from '../../chats/types'
+import type { Folder, UserSummary } from '../../chats/types'
 
 import { useChatSocket } from '../../../shared/hooks/useChatSocket'
 import { useNotice } from '../hooks/UseNotice'
 import { useChatMessages } from '../hooks/UseChatsMessages'
 import { useChats } from '../hooks/UseChats'
 
-import ChatsHeader from '../components/ChatsHeader'
+import ChatsHeader from '../components/leftColumn/ChatsHeader'
 import ListChats from '../components/leftColumn/ListChats'
 import ChatWindow from '../components/mainColumn/ChatWindow'
 import NoticeBanner from '../components/NoticeBanner'
 
 import { friendlyErrorMessage } from '../utils/errorMessages'
+import ListOfGlobalSearch from '../components/leftColumn/ListOfGlobalSearch'
+import ChatFolders from '../components/leftColumn/ChatFolders'
+import { useUserSearch } from '../hooks/UseUserSearch'
+
+const folders: Folder[] = [
+    { id: 'all', label: 'All' }
+]
 
 function ChatsPage() {
     const { token, userId: currentUserId, logout } = useAuth();
 
     const { chats, chatIds, findChatIdByMember, createChatWithUser, touchChatPreview } = useChats({ currentUserId });
     const { messagesByChat, loadHistory, loadOlderMessages,
-            hasMoreHistory, isLoadingOlder, appendMessage,
-            replaceMessage, removeMessage, } = useChatMessages(currentUserId);
+        hasMoreHistory, isLoadingOlder, appendMessage, replaceMessage, removeMessage } = useChatMessages(currentUserId);
+    const { query, setQuery, results, isSearching, reset } = useUserSearch(currentUserId);
 
     const { notice, notifyError, notifyInfo, dismiss } = useNotice();
 
     const [activeChatId, setActiveChatId] = useState<string | null>(null);
+    const [activeFolder, setActiveFolder] = useState('all');
+    const [isFocused, setIsFocused] = useState(false);
 
     const handleChatEvent = (chatId: number, event: ChatEvent) => {
         const chatKey = String(chatId);
@@ -64,9 +73,15 @@ function ChatsPage() {
         loadHistory(chatId);
     };
 
-    const handleSelectUser = async (user: UserSummary) => {
-        const existingChatId = findChatIdByMember(user.id);
+    const closeChat = () => {
+        setActiveChatId(null);
+    };
 
+    const handleSelectUser = async (user: UserSummary) => {
+        reset();
+        setIsFocused(false);
+
+        const existingChatId = findChatIdByMember(user.id);
         if (existingChatId) {
             openChat(existingChatId);
             return;
@@ -94,8 +109,31 @@ function ChatsPage() {
 
             <div className={styles.leftColumnMainWrapper}>
                 <div className={styles.leftColumnMain}>
-                    <ChatsHeader onSelectUser={handleSelectUser} />
-                    <ListChats chats={chats} activeChatId={activeChatId} onSelectChat={openChat} />
+                    <ChatsHeader
+                        query={query}
+                        onQueryChange={setQuery}
+                        setIsFocused={setIsFocused}
+                        isFocused={isFocused}
+                        reset={reset}
+                    />
+
+                    {query === "" ?
+                        <>
+                            <ChatFolders
+                                folders={folders}
+                                activeFolderId={activeFolder}
+                                onSelect={setActiveFolder}
+                            />
+                            <ListChats chats={chats} activeChatId={activeChatId} onSelectChat={openChat} />
+                        </>
+                        :
+                        <ListOfGlobalSearch
+                            query={query}
+                            isSearching={isSearching}
+                            results={results}
+                            onSelectUser={handleSelectUser}
+                        />
+                    }
                 </div>
             </div>
 
@@ -107,6 +145,7 @@ function ChatsPage() {
                     isLoadingOlder={activeChatId ? isLoadingOlder(activeChatId) : false}
                     onLoadMore={() => activeChatId && loadOlderMessages(activeChatId)}
                     onSend={handleSendMessage}
+                    onClose={closeChat}
                 />
             </div>
         </div>

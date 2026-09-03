@@ -3,6 +3,7 @@ import ChatWindowHeader from './ChatWindowHeader'
 import MessagesList from './MessagesList'
 import MessageInput from './MessageInput'
 import type { Chat, ChatMessageUI } from '../../types'
+import { useEffect } from 'react'
 
 interface ChatWindowProps {
     chat: Chat | null
@@ -11,9 +12,23 @@ interface ChatWindowProps {
     isLoadingOlder: boolean
     onLoadMore: () => void
     onSend: (content: string) => void
+    onClose: () => void
 }
 
-function ChatWindow({ chat, messages, hasMoreHistory, isLoadingOlder, onLoadMore, onSend }: ChatWindowProps) {
+function ChatWindow({ chat, messages, hasMoreHistory, isLoadingOlder, onLoadMore, onSend, onClose }: ChatWindowProps) {
+    useEffect(() => {
+        if (!chat) return;
+
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                onClose();
+            }
+        };
+
+        document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, [chat, onClose]);
+    
     if (!chat) {
         return (
             <div className={styles.chatWindow}>
