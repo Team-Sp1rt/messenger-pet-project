@@ -1,4 +1,6 @@
-export function isTokenExpired(token: string): boolean {
+export function isTokenExpired(token: string | null): boolean {
+    if (!token) return true;
+    
     const payload = token.split(".")[1];
 
     if (!payload) return true;
@@ -13,12 +15,18 @@ export function isTokenExpired(token: string): boolean {
     }
 }
 
-export function getTokenExpiryMs(token: string): number {
-    const payload = token.split(".")[1];
-    if (!payload) throw new Error("Invalid token");
+export function decodeJwtPayload(token: string): Record<string, any> | null {
+    try {
+        const payload = token.split('.')[1]
+        const normalized = payload.replace(/-/g, '+').replace(/_/g, '/')
+        const json = atob(normalized)
+        return JSON.parse(json)
+    } catch {
+        return null
+    }
+}
 
-    const base64url = payload.replaceAll('-', '+').replaceAll('_', '/');
-    const { exp } = JSON.parse(window.atob(base64url));
-
-    return exp * 1000;
+export function getUserIdFromToken(token: string): number | null {
+    const payload = decodeJwtPayload(token)
+    return payload?.sub ? Number(payload.sub) : null
 }

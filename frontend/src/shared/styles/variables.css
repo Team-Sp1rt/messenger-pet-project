@@ -3,12 +3,21 @@
     src: url(../../assets/fonts/Montserrat.ttf);
 }
 
+@font-face {
+    font-family: 'Roboto';
+    src: url(../../assets/fonts/Roboto.ttf);
+}
+
 :root {
     --bg-page: #161616;
     --bg-card: #212121;
     --bg-input: #2c2c2c;
     --text-primary: #e8e8e8;
     --text-secondary: #aaaaaa;
+    --text-input-placeholder: #9EA7AF;
     --accent: #1e7d6f;
     --accent-hover: #24968a;
+    --folders-color: #8774e1;
+    --border-color: #303030;
+    --button-delete-danger: #e53935;
 }

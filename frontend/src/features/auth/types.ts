@@ -19,7 +19,7 @@ export interface RegisterPayload {
 export interface AuthResponse {
     token: string;
     user: {
-        id: string;
+        id: number;
         username: string;
     };
 }

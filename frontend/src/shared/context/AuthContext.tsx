@@ -1,8 +1,8 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
 import { registerUnauthorizedHandler } from "../api/Client";
 import type { AuthContextType } from "../types";
-import { isTokenExpired } from "../utils/jwt";
+import { isTokenExpired, getUserIdFromToken } from "../utils/jwt";
 import { useTokenRefresh } from "../hooks/useTokenRefresh";
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -40,10 +40,12 @@ export function AuthProvider({
     }, []);
 
     useTokenRefresh(token, login, logout);
+
+    const userId = useMemo(() => (token ? getUserIdFromToken(token) : null), [token]);
     
     return (
         <AuthContext.Provider
-            value={{token, login, logout}}
+            value={{ token, userId, login, logout }}
         >
             {children}
         </AuthContext.Provider>
