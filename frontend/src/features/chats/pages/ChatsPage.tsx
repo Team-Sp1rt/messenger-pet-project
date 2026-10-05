@@ -5,7 +5,7 @@ import styles from '../styles/Chats.module.css'
 import { useAuth } from '../../../shared/context/AuthContext'
 
 import type { ChatEvent } from '../typesWs'
-import type { ChatMessageUI, Folder, UserSummary } from '../../chats/types'
+import type { ChatMessageUI, Folder, UserSummary } from '../types.ts'
 
 import { useChatSocket } from '../../../shared/hooks/useChatSocket'
 import { useNotice } from '../hooks/UseNotice'
@@ -29,7 +29,7 @@ const folders: Folder[] = [
 function ChatsPage() {
     const { token, userId: currentUserId, logout } = useAuth();
 
-    const { chats, chatIds, findChatIdByMember, createChatWithUser, touchChatPreview } = useChats({ currentUserId });
+    const { chats, chatIds, setLastMessage, findChatIdByMember, createChatWithUser, applyMessageEdited, reloadChats } = useChats({ currentUserId });
     const { messagesByChat, loadHistory, loadOlderMessages,
         hasMoreHistory, isLoadingOlder, appendMessage, replaceMessage, removeMessage } = useChatMessages(currentUserId);
     const { query, setQuery, results, isSearching, reset } = useUserSearch(currentUserId);
@@ -46,16 +46,18 @@ function ChatsPage() {
         const chatKey = String(chatId);
 
         if (event.type === 'MESSAGE_CREATED') {
-            const uiMessage = appendMessage(chatKey, event.message);
-            touchChatPreview(chatKey, event.message.content, uiMessage.time, event.message.createdAt);
+            appendMessage(chatKey, event.message);
+            setLastMessage(chatKey, event.message);
         }
 
         if (event.type === 'MESSAGE_UPDATED') {
             replaceMessage(chatKey, event.message);
+            applyMessageEdited(event.message);
         }
 
         if (event.type === 'MESSAGE_DELETED') {
             removeMessage(chatKey, event.messageId);
+            void reloadChats();
         }
     };
 
@@ -72,6 +74,7 @@ function ChatsPage() {
 
     const openChat = (chatId: string) => {
         setActiveChatId(chatId);
+        handleCancelEdit();
         loadHistory(chatId);
     };
 

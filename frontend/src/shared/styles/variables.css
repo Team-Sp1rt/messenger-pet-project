@@ -1,9 +1,4 @@
 @font-face {
-    font-family: 'Montserrat';
-    src: url(../../assets/fonts/Montserrat.ttf);
-}
-
-@font-face {
     font-family: 'Roboto';
     src: url(../../assets/fonts/Roboto.ttf);
 }
@@ -14,7 +9,7 @@
     --bg-input: #2c2c2c;
     --text-primary: #e8e8e8;
     --text-secondary: #aaaaaa;
-    --text-input-placeholder: #9EA7AF;
+    --text-input-placeholder: #6a6a6a;
     --accent: #1e7d6f;
     --accent-hover: #24968a;
     --folders-color: #8774e1;

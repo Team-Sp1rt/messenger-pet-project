@@ -1,15 +1,23 @@
-import type { ChatSummaryDto, ChatDto, Chat } from '../types'
+import type { ChatSummaryDto, ChatDto, Chat, BackendMessage } from '../types'
+
+export function lastMessageFields(msg: BackendMessage | null | undefined) {
+    return msg?.createdAt
+        ? {
+            lastMessage: msg.content ?? '',
+            time: formatChatTime(msg.createdAt),
+            lastMessageAt: msg.createdAt,
+            lastMessageId: String(msg.id),
+        }
+        : { lastMessage: '', time: '', lastMessageAt: null, lastMessageId: null };
+}
 
 export function mapChatSummary(dto: ChatSummaryDto, currentUserId: number | null): Chat {
     const other = dto.members.find(m => m.id !== currentUserId) ?? dto.members[0];
-    const hasLastMessage = Boolean(dto.lastMessage?.createdAt);
- 
+
     return {
         id: String(dto.id),
         name: other.username,
-        lastMessage: hasLastMessage ? (dto.lastMessage?.content ?? '') : '',
-        time: hasLastMessage ? formatChatTime(dto.lastMessage!.createdAt) : '',
-        lastMessageAt: hasLastMessage ? dto.lastMessage!.createdAt : null
+        ...lastMessageFields(dto.lastMessage),
     }
 }
 
@@ -19,9 +27,7 @@ export function mapNewChat(dto: ChatDto, currentUserId: number | null): Chat {
     return {
         id: String(dto.id),
         name: other.username,
-        lastMessage: '',
-        time: '',
-        lastMessageAt: null
+        ...lastMessageFields(null),
     }
 }
 

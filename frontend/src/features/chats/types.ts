@@ -10,6 +10,7 @@ export interface Chat {
     lastMessage: string;
     time: string;
     lastMessageAt: string | null;
+    lastMessageId: string | null;
 }
 
 export interface SearchUsersPayload {
