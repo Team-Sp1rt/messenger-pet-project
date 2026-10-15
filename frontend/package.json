@@ -11,9 +11,12 @@
   },
   "dependencies": {
     "@stomp/stompjs": "^7.3.0",
+    "imask": "^7.6.1",
     "lucide-react": "^1.31.0",
     "react": "^19.2.7",
+    "react-datepicker": "^9.1.0",
     "react-dom": "^19.2.7",
+    "react-imask": "^7.6.1",
     "react-router-dom": "^7.18.2",
     "sass-embedded": "^1.103.1"
   },

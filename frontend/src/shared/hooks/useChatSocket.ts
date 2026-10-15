@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import type { StompSubscription } from '@stomp/stompjs'
-import { connectStomp, disconnectStomp } from '../../shared/api/stompClient'
+import { connectStomp, disconnectStomp } from '../api/stompClient.ts'
 import { subscribeChatEvents, subscribeCommandErrors, sendChatMessage, editChatMessage, deleteChatMessage } from '../../features/chats/api/chatSocket'
 import type { ChatEvent, WebSocketErrorPayload } from '../../features/chats/typesWs'
 import { isTokenExpired } from '../utils/jwt'

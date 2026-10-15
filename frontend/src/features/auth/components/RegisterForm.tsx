@@ -1,4 +1,5 @@
-import { useRef, useState } from 'react';
+import type React from 'react';
+import { useState } from 'react';
 import { Calendar, KeyRound, LockIcon, UserRound } from 'lucide-react';
 
 import styles from '../styles/Form.module.css';
@@ -7,13 +8,13 @@ import { registerRequest } from '../api/Auth';
 import { ApiError } from '../../../shared/types';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../shared/context/AuthContext';
+import { DateInput } from "./DateInput.tsx";
 
 function RegisterForm() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [birthday, setBirthday] = useState('');
 
-    const dateRef = useRef<HTMLInputElement>(null);
-    
     const navigate = useNavigate();
     const { login } = useAuth();
 
@@ -25,14 +26,13 @@ function RegisterForm() {
         const username = formData.get('username_field') as string;
         const loginValue = formData.get('login_field') as string;
         const password = formData.get('password_field') as string;
-        const birthday = formData.get('birthday_field') as string;
 
         setError(null);
         setIsSubmitting(true);
 
         try {
             const { token } = await registerRequest({ username, login: loginValue, password, birthday });
-            
+
             login(token);
 
             navigate("/chats");
@@ -86,13 +86,12 @@ function RegisterForm() {
             </div>
 
             <div className={styles.inputWrapper}>
-                <Calendar size={18} onClick={() => dateRef.current?.showPicker()}/>
-                <input
-                    ref={dateRef}
-                    className={styles.input}
+                <Calendar size={18} />
+                <DateInput
                     name="birthday_field"
-                    type="date"
                     required
+                    onDateChange={setBirthday}
+                    className={styles.input}
                 />
             </div>
 

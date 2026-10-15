@@ -1,29 +1,50 @@
-import { useEffect, useMemo, useState } from 'react'
-import { getChatsRequest, createChatRequest } from '../../chats/api/chats'
-import { mapChatSummary, mapNewChat } from '../utils/mapChat'
-import type { Chat, UserSummary } from '../../chats/types'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { getChatsRequest, createChatRequest } from '../api/chats.ts'
+import { lastMessageFields, mapChatSummary, mapNewChat } from '../utils/mapChat'
+import type { BackendMessage, Chat, ChatSummaryDto, UserSummary } from '../types.ts'
 
 interface UseChatsParams {
     currentUserId: number | null
 }
 
+const sortChats = (list: Chat[]) =>
+    [...list].sort((a, b) => {
+        if (!a.lastMessageAt) return 1;
+        if (!b.lastMessageAt) return -1;
+        return new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime();
+    });
+
 export function useChats({ currentUserId }: UseChatsParams) {
     const [chats, setChats] = useState<Chat[]>([]);
     const [chatMembers, setChatMembers] = useState<Record<string, number>>({});
 
-    useEffect(() => {
-        getChatsRequest().then((res) => {
-            setChats(res.items.map((dto) => mapChatSummary(dto, currentUserId)));
+    const applyChats = useCallback((items: ChatSummaryDto[]) => {
+        setChats(items.map((dto) => mapChatSummary(dto, currentUserId)));
 
-            const membersMap: Record<string, number> = {};
-            res.items.forEach((dto) => {
-                const other = dto.members.find((m) => m.id !== currentUserId) ?? dto.members[0];
-                membersMap[String(dto.id)] = other.id;
-            });
-
-            setChatMembers(membersMap);
-        })
+        const membersMap: Record<string, number> = {};
+        items.forEach((dto) => {
+            const other = dto.members.find((m) => m.id !== currentUserId) ?? dto.members[0];
+            membersMap[String(dto.id)] = other.id;
+        });
+        setChatMembers(membersMap);
     }, [currentUserId]);
+
+    const reloadChats = useCallback(async () => {
+        const res = await getChatsRequest();
+        applyChats(res.items);
+    }, [applyChats]);
+
+    useEffect(() => {
+        let cancelled = false;
+
+        getChatsRequest()
+            .then((res) => {
+                if (!cancelled) applyChats(res.items);
+            })
+            .catch((e) => console.error('Failed to load chats', e));
+
+        return () => { cancelled = true; };
+    }, [applyChats]);
 
     const chatIds = useMemo(() => chats.map((c) => Number(c.id)), [chats]);
 
@@ -40,21 +61,28 @@ export function useChats({ currentUserId }: UseChatsParams) {
         return chatId;
     };
 
-    const touchChatPreview = (chatId: string, content: string, time: string, createdAt: string) => {
-        setChats((prev) => {
-            const updated = prev.map((chat) =>
-                chat.id === chatId
-                    ? { ...chat, lastMessage: content, time, lastMessageAt: createdAt }
-                    : chat
-            );
+    const setLastMessage = (chatId: string, msg: BackendMessage | null) =>
+        setChats((prev) =>
+            sortChats(prev.map((c) => (c.id === chatId ? { ...c, ...lastMessageFields(msg) } : c)))
+        );
 
-            return [...updated].sort((a, b) => {
-                if (!a.lastMessageAt) return 1;
-                if (!b.lastMessageAt) return -1;
-                return new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime();
-            });
-        });
+    const applyMessageEdited = (msg: BackendMessage) =>
+        setChats((prev) =>
+            prev.map((c) =>
+                c.id === String(msg.chatId) && c.lastMessageId === String(msg.id)
+                    ? { ...c, lastMessage: msg.content }
+                    : c
+            )
+        );
+
+    return {
+        chats,
+        chatIds,
+        chatMembers,
+        findChatIdByMember,
+        createChatWithUser,
+        setLastMessage,
+        applyMessageEdited,
+        reloadChats,
     };
-
-    return { chats, chatIds, chatMembers, findChatIdByMember, createChatWithUser, touchChatPreview };
 }

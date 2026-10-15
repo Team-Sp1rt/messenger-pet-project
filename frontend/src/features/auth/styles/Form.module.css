@@ -22,16 +22,22 @@
     width: 100%;
 }
 
+.inputWrapper :global(.react-datepicker-wrapper) {
+    width: 100%;
+}
+
+.inputWrapper :global(.react-datepicker-popper) {
+    z-index: 101 !important;
+    transform: translate(-41.5%, -100%) !important;
+}
+
 .inputWrapper svg {
     position: absolute;
+    z-index: 100;
     left: 12px;
     top: 50%;
     transform: translateY(-50%);
     color: var(--text-secondary);
-}
-
-.inputWrapper:nth-child(5) svg {
-    cursor: pointer;
 }
 
 .input {
@@ -44,9 +50,8 @@
     box-sizing: border-box;
 }
 
-input[type="date"]::-webkit-calendar-picker-indicator {
-    opacity: 0;
-    pointer-events: none;
+.input.has-input {
+    color: var(--text-primary);
 }
 
 .forgotLink {
