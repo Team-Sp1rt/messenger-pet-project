@@ -1,7 +1,7 @@
 import { ApiError } from "../types";
 import { isTokenExpired } from "../utils/jwt";
 
-const BASE_URL = 'http://localhost:8080/api';
+const BASE_URL = '/api';
 
 let onUnauthorized: (() => void) | null = null;
 
