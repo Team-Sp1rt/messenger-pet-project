@@ -1,6 +1,6 @@
 package messenger.backend.repositories;
 
-import messenger.backend.dtos.Message;
+import messenger.backend.dtos.MessageDto;
 import messenger.backend.dtos.NewMessage;
 import messenger.backend.exceptions.repostitories.NoSuchMessageException;
 import org.springframework.jdbc.datasource.DataSourceUtils;
@@ -19,7 +19,7 @@ public class MessagesRepository {
         this.dataSource = dataSource;
     }
 
-    public Message insertNewMessageReturnsMessage(NewMessage newMessage) throws SQLException {
+    public MessageDto insertNewMessageReturnsMessage(NewMessage newMessage) throws SQLException {
         String sql = """
             INSERT INTO messages(chat_id, user_id, content)
             VALUES (?, ?, ?)
@@ -41,7 +41,7 @@ public class MessagesRepository {
         }
     }
 
-    public Message editMessageReturnsMessage(Long id, String newContent) throws SQLException, NoSuchMessageException {
+    public MessageDto editMessageReturnsMessage(Long id, String newContent) throws SQLException, NoSuchMessageException {
         String sql = """
             UPDATE messages SET
             content = ?
@@ -82,7 +82,7 @@ public class MessagesRepository {
         }
     }
 
-    public List<Message> getLastNMessagesInTheChat(Integer n, Long chatID) throws SQLException {
+    public List<MessageDto> getLastNMessagesInTheChat(Integer n, Long chatID) throws SQLException {
         String sql = """
             SELECT * FROM messages
             WHERE chat_id = ?
@@ -103,12 +103,12 @@ public class MessagesRepository {
         }
     }
 
-    public List<Message> getNMessagesInTheChatBeforeMessageWithID(Integer n, Long chatID, Long messageID) throws SQLException, NoSuchMessageException {
-        Message message = getMessageById(messageID);
+    public List<MessageDto> getNMessagesInTheChatBeforeMessageWithID(Integer n, Long chatID, Long messageID) throws SQLException, NoSuchMessageException {
+        MessageDto message = getMessageById(messageID);
         return getNMessagesInTheChatBeforeMessage(n, chatID, message);
     }
 
-    public List<Message> getNMessagesInTheChatBeforeMessage(Integer n, Long chatID, Message message) throws SQLException {
+    public List<MessageDto> getNMessagesInTheChatBeforeMessage(Integer n, Long chatID, MessageDto message) throws SQLException {
         String sql = """
             SELECT * FROM messages
             WHERE chat_id = ? AND created_at < ?
@@ -152,7 +152,7 @@ public class MessagesRepository {
         }
     }
 
-    public Message getMessageById(Long messageId) throws SQLException, NoSuchMessageException {
+    public MessageDto getMessageById(Long messageId) throws SQLException, NoSuchMessageException {
         String sql = """
         SELECT *
         FROM messages
@@ -177,8 +177,8 @@ public class MessagesRepository {
         }
     }
 
-    private Message mapRowToMessage(ResultSet resultSet) throws SQLException {
-        return new Message(
+    private MessageDto mapRowToMessage(ResultSet resultSet) throws SQLException {
+        return new MessageDto(
                 resultSet.getLong("id"),
                 resultSet.getLong("chat_id"),
                 resultSet.getLong("user_id"),
@@ -187,8 +187,8 @@ public class MessagesRepository {
         );
     }
 
-    private List<Message> mapResultSetToMessagesList(ResultSet resultSet) throws SQLException {
-        List<Message> messagesList = new LinkedList<>();
+    private List<MessageDto> mapResultSetToMessagesList(ResultSet resultSet) throws SQLException {
+        List<MessageDto> messagesList = new LinkedList<>();
 
         while (resultSet.next()) {
             messagesList.add(mapRowToMessage(resultSet));

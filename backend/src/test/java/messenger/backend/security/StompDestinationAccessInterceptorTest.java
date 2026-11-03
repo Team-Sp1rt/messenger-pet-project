@@ -147,4 +147,17 @@ class StompDestinationAccessInterceptorTest {
 
         verify(chatMembershipService).checkUserInChat(7L, 42L);
     }
+
+    @Test
+    void subscribeToPersonalChats_isAllowed() {
+        Message<byte[]> message = createMessage(
+                StompCommand.SUBSCRIBE,
+                "/user/queue/chats",
+                "42"
+        );
+
+        Message<?> result = interceptor.preSend(message, null);
+
+        assertSame(message, result);
+    }
 }

@@ -22,6 +22,7 @@ public class StompDestinationAccessInterceptor implements ChannelInterceptor {
 
     private static final String APPLICATION_PREFIX = "/app/";
     private static final String PERSONAL_ERRORS_DESTINATION = "/user/queue/errors";
+    private static final String PERSONAL_CHATS_DESTINATION = "/user/queue/chats";
     private static final Pattern CHAT_EVENTS_DESTINATION = Pattern.compile("^/topic/chats/(\\d+)/events$");
 
     private final ChatMembershipService chatMembershipService;
@@ -79,7 +80,8 @@ public class StompDestinationAccessInterceptor implements ChannelInterceptor {
             throw new MessageDeliveryException("ACCESS_DENIED: Destination is missing");
         }
 
-        if (PERSONAL_ERRORS_DESTINATION.equals(destination)) {
+        if (PERSONAL_ERRORS_DESTINATION.equals(destination)
+                || PERSONAL_CHATS_DESTINATION.equals(destination)) {
             return;
         }
 

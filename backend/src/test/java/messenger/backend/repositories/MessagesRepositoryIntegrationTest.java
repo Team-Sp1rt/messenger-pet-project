@@ -1,6 +1,6 @@
 package messenger.backend.repositories;
 
-import messenger.backend.dtos.Message;
+import messenger.backend.dtos.MessageDto;
 import messenger.backend.dtos.NewMessage;
 import messenger.backend.dtos.User;
 import messenger.backend.exceptions.repostitories.ReposException;
@@ -75,7 +75,7 @@ public class MessagesRepositoryIntegrationTest {
         List<Long> ids = givenFilledOtherTablesReturnsListOfIDs();
         String content = "meow";
 
-        Message message = messagesRepository.insertNewMessageReturnsMessage(
+        MessageDto message = messagesRepository.insertNewMessageReturnsMessage(
                 new NewMessage(ids.get(FIRST_CHAT), ids.get(FIRST_USER), content)
         );
 
@@ -88,10 +88,10 @@ public class MessagesRepositoryIntegrationTest {
         List<Long> ids = givenFilledOtherTablesReturnsListOfIDs();
         String content = "meow";
 
-        Message firstMessage = messagesRepository.insertNewMessageReturnsMessage(
+        MessageDto firstMessage = messagesRepository.insertNewMessageReturnsMessage(
                 new NewMessage(ids.get(FIRST_CHAT), ids.get(FIRST_USER), content)
         );
-        Message secondMessage = messagesRepository.insertNewMessageReturnsMessage(
+        MessageDto secondMessage = messagesRepository.insertNewMessageReturnsMessage(
                 new NewMessage(ids.get(FIRST_CHAT), ids.get(FIRST_USER), content)
         );
 
@@ -103,7 +103,7 @@ public class MessagesRepositoryIntegrationTest {
             throws SQLException {
         List<Long> ids = givenFilledAllTablesReturnsListOfIDs();
 
-        List<Message> messagesList = messagesRepository.getLastNMessagesInTheChat(10, ids.get(FIRST_CHAT));
+        List<MessageDto> messagesList = messagesRepository.getLastNMessagesInTheChat(10, ids.get(FIRST_CHAT));
 
         thenMessagesListShouldBeCorrect(messagesList, ids);
     }
@@ -113,9 +113,9 @@ public class MessagesRepositoryIntegrationTest {
             throws SQLException {
         List<Long> ids = givenFilledAllTablesReturnsListOfIDs();
 
-        List<Message> messagesList = messagesRepository.getNMessagesInTheChatBeforeMessage(
+        List<MessageDto> messagesList = messagesRepository.getNMessagesInTheChatBeforeMessage(
                 10, ids.get(FIRST_CHAT),
-                new Message(null, null, null, null, Timestamp.from(Instant.now()))
+                new MessageDto(null, null, null, null, Timestamp.from(Instant.now()))
                 );
 
         thenMessagesListShouldBeCorrect(messagesList, ids);
@@ -142,7 +142,7 @@ public class MessagesRepositoryIntegrationTest {
         List<Long> ids = givenFilledAllTablesReturnsListOfIDs();
         String newContent = "woof";
 
-        Message message = messagesRepository.editMessageReturnsMessage(ids.get(FIRST_MESSAGE), newContent);
+        MessageDto message = messagesRepository.editMessageReturnsMessage(ids.get(FIRST_MESSAGE), newContent);
 
         thenMessageShouldBeCorrect(message, ids.get(FIRST_CHAT), ids.get(FIRST_USER), newContent);
     }
@@ -158,7 +158,7 @@ public class MessagesRepositoryIntegrationTest {
         List<Long> ids = givenFilledAllTablesReturnsListOfIDs();
 
         messagesRepository.deleteMessage(ids.get(SECOND_MESSAGE));
-        List<Message> messagesList = messagesRepository.getLastNMessagesInTheChat(10, ids.get(FIRST_CHAT));
+        List<MessageDto> messagesList = messagesRepository.getLastNMessagesInTheChat(10, ids.get(FIRST_CHAT));
 
         thenMessagesListShouldNotContainMessageWithID(messagesList, ids.get(SECOND_MESSAGE));
     }
@@ -207,33 +207,33 @@ public class MessagesRepositoryIntegrationTest {
         return new ArrayList<>(List.of(firstUserID, secondUserID, firstChatID, secondChatID));
     }
 
-    private void thenMessageShouldBeCorrect(Message message, Long chatID, Long userID, String content) {
+    private void thenMessageShouldBeCorrect(MessageDto message, Long chatID, Long userID, String content) {
         assertEquals(chatID, message.chatID());
         assertEquals(userID, message.userID());
         assertEquals(content, message.content());
     }
 
-    private void thenIDsAndCreatedAtShouldBeIncreasing(Message firstMessage, Message secondMessage) {
+    private void thenIDsAndCreatedAtShouldBeIncreasing(MessageDto firstMessage, MessageDto secondMessage) {
         assertTrue(firstMessage.id() < secondMessage.id());
         assertTrue(firstMessage.createdAt().before(secondMessage.createdAt()));
     }
 
-    private void thenMessagesListShouldBeCorrect(List<Message> messageList, List<Long> ids) {
+    private void thenMessagesListShouldBeCorrect(List<MessageDto> messageList, List<Long> ids) {
         assertEquals(2, messageList.size());
         String content = "meow";
-        Message firstMessage = messageList.get(1);
+        MessageDto firstMessage = messageList.get(1);
         assertEquals(ids.get(FIRST_MESSAGE), firstMessage.id());
         assertEquals(ids.get(FIRST_CHAT), firstMessage.chatID());
         assertEquals(ids.get(FIRST_USER), firstMessage.userID());
         assertEquals(content, firstMessage.content());
-        Message secondMessage = messageList.getFirst();
+        MessageDto secondMessage = messageList.getFirst();
         assertEquals(ids.get(SECOND_MESSAGE), secondMessage.id());
         assertEquals(ids.get(FIRST_CHAT), secondMessage.chatID());
         assertEquals(ids.get(SECOND_USER), secondMessage.userID());
         assertEquals(content, secondMessage.content());
     }
 
-    private void thenMessagesListShouldNotContainMessageWithID(List<Message> messageList, Long id) {
+    private void thenMessagesListShouldNotContainMessageWithID(List<MessageDto> messageList, Long id) {
         assertTrue(messageList.stream().noneMatch(message -> message.id().equals(id)));
     }
 }

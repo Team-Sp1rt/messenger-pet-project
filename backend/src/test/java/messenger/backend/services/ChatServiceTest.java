@@ -1,7 +1,7 @@
 package messenger.backend.services;
 
-import messenger.backend.dtos.Message;
-import messenger.backend.dtos.User;
+import messenger.backend.dtos.ChatCreated;
+import messenger.backend.dtos.MessageDto;
 import messenger.backend.exceptions.repostitories.ReposException;
 import messenger.backend.exceptions.repostitories.NoSuchMessageException;
 import messenger.backend.exceptions.repostitories.NoSuchUserException;
@@ -21,10 +21,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
+
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
 
@@ -47,11 +48,20 @@ class ChatServiceTest {
     @Mock
     private MessagesRepository messagesRepository;
 
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
+
     private ChatService chatService;
 
     @BeforeEach
     void setUp() {
-        chatService = new ChatService(chatsRepository, chatMembersRepository, userRepository, messagesRepository);
+        chatService = new ChatService(
+                chatsRepository,
+                chatMembersRepository,
+                userRepository,
+                messagesRepository,
+                eventPublisher
+        );
     }
 
     //TODO: тесты на кидание DatabaseException,
@@ -81,7 +91,7 @@ class ChatServiceTest {
         assertEquals(expected, result.getMembers());
         verify(chatMembersRepository).insertNewChatMember(chatId, creatorId);
         verify(chatMembersRepository).insertNewChatMember(chatId, memberId);
-
+        verify(eventPublisher).publishEvent(new ChatCreated(result));
     }
 
     @Test
@@ -90,9 +100,9 @@ class ChatServiceTest {
         long userId = 1L;
         int limit = 2;
 
-        Message newestMessage = new Message(3L, chatId, userId, "newestMessage", Timestamp.from(Instant.parse("2026-08-24T12:02:00Z")));
-        Message middleMessage = new Message(2L, chatId, 2L, "middleMessage", Timestamp.from(Instant.parse("2026-08-24T12:01:00Z")));
-        Message oldestMessage = new Message(1L, chatId, userId, "oldestMessage", Timestamp.from(Instant.parse("2026-08-24T12:00:00Z")));
+        MessageDto newestMessage = new MessageDto(3L, chatId, userId, "newestMessage", Timestamp.from(Instant.parse("2026-08-24T12:02:00Z")));
+        MessageDto middleMessage = new MessageDto(2L, chatId, 2L, "middleMessage", Timestamp.from(Instant.parse("2026-08-24T12:01:00Z")));
+        MessageDto oldestMessage = new MessageDto(1L, chatId, userId, "oldestMessage", Timestamp.from(Instant.parse("2026-08-24T12:00:00Z")));
 
         when(messagesRepository.getLastNMessagesInTheChat(limit + 1, chatId))
                 .thenReturn(List.of(newestMessage, middleMessage, oldestMessage));
@@ -112,11 +122,11 @@ class ChatServiceTest {
         long userId = 1L;
         int limit = 3;
 
-        Message newestMessage = new Message(3L, chatId, userId, "newestMessage", Timestamp.from(Instant.parse("2026-08-24T12:02:00Z")));
+        MessageDto newestMessage = new MessageDto(3L, chatId, userId, "newestMessage", Timestamp.from(Instant.parse("2026-08-24T12:02:00Z")));
 
-        Message middleMessage = new Message(2L, chatId, 2L, "middleMessage", Timestamp.from(Instant.parse("2026-08-24T12:01:00Z")));
+        MessageDto middleMessage = new MessageDto(2L, chatId, 2L, "middleMessage", Timestamp.from(Instant.parse("2026-08-24T12:01:00Z")));
 
-        Message oldestMessage = new Message(1L, chatId, userId, "oldestMessage", Timestamp.from(Instant.parse("2026-08-24T12:00:00Z")));
+        MessageDto oldestMessage = new MessageDto(1L, chatId, userId, "oldestMessage", Timestamp.from(Instant.parse("2026-08-24T12:00:00Z")));
 
         when(messagesRepository.getLastNMessagesInTheChat(limit + 1, chatId))
                 .thenReturn(List.of(newestMessage, middleMessage, oldestMessage));
@@ -137,9 +147,9 @@ class ChatServiceTest {
         int limit = 2;
         long beforeId = 3L;
 
-        Message newestMessage = new Message(3L, chatId, userId, "newestMessage", Timestamp.from(Instant.parse("2026-08-24T12:02:00Z")));
-        Message middleMessage = new Message(2L, chatId, 2L, "middleMessage", Timestamp.from(Instant.parse("2026-08-24T12:01:00Z")));
-        Message oldestMessage = new Message(1L, chatId, userId, "oldestMessage", Timestamp.from(Instant.parse("2026-08-24T12:00:00Z")));
+        MessageDto newestMessage = new MessageDto(3L, chatId, userId, "newestMessage", Timestamp.from(Instant.parse("2026-08-24T12:02:00Z")));
+        MessageDto middleMessage = new MessageDto(2L, chatId, 2L, "middleMessage", Timestamp.from(Instant.parse("2026-08-24T12:01:00Z")));
+        MessageDto oldestMessage = new MessageDto(1L, chatId, userId, "oldestMessage", Timestamp.from(Instant.parse("2026-08-24T12:00:00Z")));
 
         when(messagesRepository.getNMessagesInTheChatBeforeMessageWithID(limit + 1, chatId, newestMessage.id()))
                 .thenReturn(List.of(middleMessage, oldestMessage));
@@ -163,7 +173,7 @@ class ChatServiceTest {
         UserSummary user = new UserSummary(userId, "current-user");
         UserSummary firstMember = new UserSummary(firstMemberId, "first-member");
         UserSummary secondMember = new UserSummary(secondMemberId, "second-member");
-        Message lastMessage = new Message(100L, firstChatId, firstMemberId, "last message", Timestamp.from(Instant.parse("2026-08-24T12:00:00Z")));
+        MessageDto lastMessage = new MessageDto(100L, firstChatId, firstMemberId, "last message", Timestamp.from(Instant.parse("2026-08-24T12:00:00Z")));
 
         when(chatMembersRepository.getAllChatsOfTheMember(userId)).thenReturn(Set.of(firstChatId, secondChatId));
         when(chatMembersRepository.getAllMembersOfTheChat(firstChatId)).thenReturn(Set.of(userId, firstMemberId));
