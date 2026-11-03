@@ -1,6 +1,6 @@
 package messenger.backend.services;
 
-import messenger.backend.dtos.Message;
+import messenger.backend.dtos.MessageDto;
 import messenger.backend.dtos.User;
 import messenger.backend.exceptions.repostitories.NoSuchMessageException;
 import messenger.backend.exceptions.repostitories.NoSuchUserException;
@@ -65,7 +65,7 @@ public class ChatService {
     }
 
     public MessagePage getChatMessages(Long chatId, Long beforeMessageId, Integer limit) {
-        List<messenger.backend.dtos.Message> dbMessages;
+        List<MessageDto> dbMessages;
         try {
             if (beforeMessageId == null) {
                 dbMessages = messagesRepository.getLastNMessagesInTheChat(limit + 1, chatId);
@@ -102,7 +102,7 @@ public class ChatService {
                 try {
                     Set<Long> memberIds = chatMembersRepository.getAllMembersOfTheChat(id);
                     List<UserSummary> userSummaryList = userRepository.getUserSummariesByIDs(memberIds);
-                    List<Message> messages = messagesRepository.getLastNMessagesInTheChat(1, id);
+                    List<MessageDto> messages = messagesRepository.getLastNMessagesInTheChat(1, id);
                     chatSummariesList.add(new ChatSummary(id, userSummaryList, messages.isEmpty() ? null : toApiMessage(messages.getFirst())));
                 } catch (SQLException e) {
                     log.error("Failed to get chat: chatId={}", id, e);
@@ -115,7 +115,7 @@ public class ChatService {
     }
 
     private messenger.backend.generated.model.Message toApiMessage(
-            messenger.backend.dtos.Message message
+            MessageDto message
     ) {
         return new messenger.backend.generated.model.Message(
                 message.id(),

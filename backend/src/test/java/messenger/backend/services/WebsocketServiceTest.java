@@ -41,7 +41,7 @@ public class WebsocketServiceTest {
     private SimpMessagingTemplate simpMessagingTemplate;
 
     @Mock
-    private messenger.backend.dtos.Message message;
+    private MessageDto message;
 
     @Mock
     WebSocketMessagePublisher messagePublisher;
@@ -64,8 +64,8 @@ public class WebsocketServiceTest {
 
         websocketService.sendMessage(chatId, userId, content);
 
-        ArgumentCaptor<messenger.backend.dtos.Message> captorMessageEvent =
-                ArgumentCaptor.forClass(messenger.backend.dtos.Message.class);
+        ArgumentCaptor<MessageDto> captorMessageEvent =
+                ArgumentCaptor.forClass(MessageDto.class);
         ArgumentCaptor<NewMessage> captorNewMessage =
                 ArgumentCaptor.forClass(NewMessage.class);
 
@@ -83,7 +83,7 @@ public class WebsocketServiceTest {
         assertEquals(userId, newMessage.userID());
         assertEquals(content, newMessage.content());
 
-        messenger.backend.dtos.Message event = captorMessageEvent.getValue();
+        MessageDto event = captorMessageEvent.getValue();
 
         assertEquals(message, event);
     }
@@ -167,8 +167,8 @@ public class WebsocketServiceTest {
 
         websocketService.editMessage(chatId, userId, messageId, content);
 
-        ArgumentCaptor<messenger.backend.dtos.Message> captor =
-                ArgumentCaptor.forClass(messenger.backend.dtos.Message.class);
+        ArgumentCaptor<MessageDto> captor =
+                ArgumentCaptor.forClass(MessageDto.class);
         verify(messagesRepository, times(1))
                 .getUserIDByMessageID(messageId);
 
@@ -178,7 +178,7 @@ public class WebsocketServiceTest {
         verify(messagePublisher, times(1))
                 .publishUpdated(captor.capture());
 
-        messenger.backend.dtos.Message event = captor.getValue();
+        MessageDto event = captor.getValue();
 
         assertEquals(message, event);
     }

@@ -1,7 +1,7 @@
 package messenger.backend.messaging;
 
 import messenger.backend.dtos.ChatEventType;
-import messenger.backend.dtos.Message;
+import messenger.backend.dtos.MessageDto;
 import messenger.backend.dtos.MessageChangedEvent;
 import messenger.backend.dtos.MessageDeletedEvent;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -19,7 +19,7 @@ public class WebSocketMessagePublisher implements MessageEventPublisher {
     }
 
     @Override
-    public void publishCreated(Message message) {
+    public void publishCreated(MessageDto message) {
         send(
                 message.chatID(),
                 new MessageChangedEvent(ChatEventType.MESSAGE_CREATED, toResponse(message))
@@ -27,7 +27,7 @@ public class WebSocketMessagePublisher implements MessageEventPublisher {
     }
 
     @Override
-    public void publishUpdated(Message message) {
+    public void publishUpdated(MessageDto message) {
         send(
                 message.chatID(),
                 new MessageChangedEvent(ChatEventType.MESSAGE_UPDATED, toResponse(message))
@@ -50,7 +50,7 @@ public class WebSocketMessagePublisher implements MessageEventPublisher {
     }
 
     private messenger.backend.generated.model.Message toResponse(
-            messenger.backend.dtos.Message message
+            MessageDto message
     ) {
         return new messenger.backend.generated.model.Message(
                 message.id(),

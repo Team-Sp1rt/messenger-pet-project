@@ -1,7 +1,7 @@
 package messenger.backend.messaging;
 
 import messenger.backend.dtos.ChatEventType;
-import messenger.backend.dtos.Message;
+import messenger.backend.dtos.MessageDto;
 import messenger.backend.dtos.MessageChangedEvent;
 import messenger.backend.dtos.MessageDeletedEvent;
 import org.junit.jupiter.api.Test;
@@ -31,7 +31,7 @@ class WebSocketMessagePublisherTest {
     void publishCreated_sendsCreatedEventToChatTopic() {
         Instant createdAt = Instant.parse("2026-08-20T12:00:00Z");
 
-        Message message = new Message(
+        MessageDto message = new MessageDto(
                 10L,
                 15L,
                 7L,
@@ -61,7 +61,7 @@ class WebSocketMessagePublisherTest {
     void publishUpdated_sendsUpdatedEventToChatTopic() {
         Instant createdAt = Instant.parse("2026-08-20T12:00:00Z");
 
-        Message message = new Message(
+        MessageDto message = new MessageDto(
                 10L,
                 15L,
                 7L,

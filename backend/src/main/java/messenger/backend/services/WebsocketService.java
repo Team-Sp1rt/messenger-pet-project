@@ -34,7 +34,7 @@ public class WebsocketService {
                             String content) throws WebsocketServiceException {
 
         chatMembershipService.checkUserInChat(userId, chatId);
-        messenger.backend.dtos.Message message;
+        MessageDto message;
 
         try {
             message = messagesRepository.insertNewMessageReturnsMessage(new NewMessage(chatId, userId, content));
@@ -58,7 +58,7 @@ public class WebsocketService {
                             String content) throws WebsocketServiceException {
 
         chatMembershipService.checkUserInChat(userId, chatId);
-        messenger.backend.dtos.Message message;
+        MessageDto message;
 
         try {
 
