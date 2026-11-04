@@ -5,6 +5,7 @@
 - Endpoint: `/ws`
 - Префикс команд клиента: `/app`
 - Префикс событий сервера: `/topic`
+- Персональные уведомления о чатах: `/user/queue/chats`
 - Персональные ошибки: `/user/queue/errors`
 
 При локальном запуске полный адрес подключения:
@@ -29,7 +30,7 @@ JWT передаётся в STOMP-заголовке, а не в JSON-теле �
 
 ## Подписка на события чата
 
-После открытия чата клиент подписывается на:
+Для получения событий сообщений клиент подписывается на каждый известный ему чат:
 
 ```text
 /topic/chats/{chatId}/events
@@ -40,6 +41,51 @@ JWT передаётся в STOMP-заголовке, а не в JSON-теле �
 
 Все идентификаторы (`id`, `chatId`, `userId`, `messageId`) передаются как
 JSON-числа и соответствуют типу Java `Long` / OpenAPI `integer (int64)`.
+
+## Создание чата
+
+После каждого подключения к WebSocket, включая восстановление соединения,
+клиент подписывается на персональные уведомления:
+
+```text
+/user/queue/chats
+```
+
+ID пользователя в destination указывать не нужно: получатель определяется
+по пользователю WebSocket-сессии, установленному при `CONNECT`.
+
+Чат создаётся HTTP-запросом `POST /api/chats` (см. `openapi.yaml`). После
+успешного завершения транзакции сервер отправляет `CHAT_CREATED` обоим
+участникам чата, включая создателя. Событие получают все их сессии,
+подписанные на `/user/queue/chats`.
+
+Событие:
+
+```json
+{
+  "type": "CHAT_CREATED",
+  "chat": {
+    "id": 42,
+    "members": [
+      { "id": 15, "username": "alice" },
+      { "id": 16, "username": "bob" }
+    ]
+  }
+}
+```
+
+Поле `chat` соответствует схеме `Chat` из OpenAPI: содержит ID и участников,
+без поля `lastMessage`.
+
+При получении события клиент добавляет чат в список либо повторно запрашивает
+список через `GET /api/chats`, затем подписывается на
+`/topic/chats/{chatId}/events`. Добавление должно учитывать дубликаты по
+`chat.id`: создатель получает чат также в HTTP-ответе на создание.
+
+Уведомления не сохраняются для отключённых клиентов. При загрузке страницы
+и восстановлении соединения клиент повторно получает список через
+`GET /api/chats` и загружает необходимую историю сообщений, чтобы учесть
+изменения, произошедшие во время отключения или до подписки на новый чат.
 
 ## Создание сообщения
 
@@ -176,10 +222,11 @@ WebSocket-соединения.
 
 ## Краткая таблица
 
-| Направление | Destination | Назначение                       |
-| --- | --- |----------------------------------|
-| Client to server | `/app/chats/{chatId}/messages` | Создать сообщение  MESSAGE_CREATED              |
-| Client to server | `/app/chats/{chatId}/messages/{messageId}/edit` | Изменить сообщение  MESSAGE_UPDATED             |
-| Client to server | `/app/chats/{chatId}/messages/{messageId}/delete` | Удалить сообщение  MESSAGE_DELETED              |
-| Server to client | `/topic/chats/{chatId}/events` | События сообщений в чате         |
+| Направление | Destination | Назначение |
+| --- | --- | --- |
+| Client to server | `/app/chats/{chatId}/messages` | Команда создания сообщения |
+| Client to server | `/app/chats/{chatId}/messages/{messageId}/edit` | Команда изменения сообщения |
+| Client to server | `/app/chats/{chatId}/messages/{messageId}/delete` | Команда удаления сообщения |
+| Server to client | `/topic/chats/{chatId}/events` | События `MESSAGE_CREATED`, `MESSAGE_UPDATED`, `MESSAGE_DELETED` |
+| Server to client | `/user/queue/chats` | Персональное уведомление `CHAT_CREATED` |
 | Server to client | `/user/queue/errors` | Персональные ошибки пользователя |

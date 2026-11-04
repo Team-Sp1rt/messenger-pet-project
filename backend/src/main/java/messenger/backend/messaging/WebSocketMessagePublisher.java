@@ -1,13 +1,13 @@
 package messenger.backend.messaging;
 
 import messenger.backend.dtos.ChatEventType;
-import messenger.backend.dtos.Message;
+import messenger.backend.dtos.MessageDto;
 import messenger.backend.dtos.MessageChangedEvent;
 import messenger.backend.dtos.MessageDeletedEvent;
+import messenger.backend.generated.model.Message;
+import messenger.backend.mappers.MessageMapper;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
-
-import java.time.ZoneOffset;
 
 @Component
 public class WebSocketMessagePublisher implements MessageEventPublisher {
@@ -19,18 +19,18 @@ public class WebSocketMessagePublisher implements MessageEventPublisher {
     }
 
     @Override
-    public void publishCreated(Message message) {
+    public void publishCreated(MessageDto message) {
         send(
                 message.chatID(),
-                new MessageChangedEvent(ChatEventType.MESSAGE_CREATED, toResponse(message))
+                new MessageChangedEvent(ChatEventType.MESSAGE_CREATED, MessageMapper.toApi(message))
         );
     }
 
     @Override
-    public void publishUpdated(Message message) {
+    public void publishUpdated(MessageDto message) {
         send(
                 message.chatID(),
-                new MessageChangedEvent(ChatEventType.MESSAGE_UPDATED, toResponse(message))
+                new MessageChangedEvent(ChatEventType.MESSAGE_UPDATED, MessageMapper.toApi(message))
         );
     }
 
@@ -46,20 +46,6 @@ public class WebSocketMessagePublisher implements MessageEventPublisher {
         messagingTemplate.convertAndSend(
                 "/topic/chats/" + chatId + "/events",
                 event
-        );
-    }
-
-    private messenger.backend.generated.model.Message toResponse(
-            messenger.backend.dtos.Message message
-    ) {
-        return new messenger.backend.generated.model.Message(
-                message.id(),
-                message.chatID(),
-                message.userID(),
-                message.content(),
-                message.createdAt()
-                        .toInstant()
-                        .atOffset(ZoneOffset.UTC)
         );
     }
 }

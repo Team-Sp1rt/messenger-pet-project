@@ -1,9 +1,10 @@
 package messenger.backend.messaging;
 
 import messenger.backend.dtos.ChatEventType;
-import messenger.backend.dtos.Message;
+import messenger.backend.dtos.MessageDto;
 import messenger.backend.dtos.MessageChangedEvent;
 import messenger.backend.dtos.MessageDeletedEvent;
+import messenger.backend.generated.model.Message;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -31,7 +32,7 @@ class WebSocketMessagePublisherTest {
     void publishCreated_sendsCreatedEventToChatTopic() {
         Instant createdAt = Instant.parse("2026-08-20T12:00:00Z");
 
-        Message message = new Message(
+        MessageDto message = new MessageDto(
                 10L,
                 15L,
                 7L,
@@ -39,7 +40,7 @@ class WebSocketMessagePublisherTest {
                 Timestamp.from(createdAt)
         );
 
-        messenger.backend.generated.model.Message response = new messenger.backend.generated.model.Message(
+        Message response = new Message(
                 10L,
                 15L,
                 7L,
@@ -61,7 +62,7 @@ class WebSocketMessagePublisherTest {
     void publishUpdated_sendsUpdatedEventToChatTopic() {
         Instant createdAt = Instant.parse("2026-08-20T12:00:00Z");
 
-        Message message = new Message(
+        MessageDto message = new MessageDto(
                 10L,
                 15L,
                 7L,
@@ -69,7 +70,7 @@ class WebSocketMessagePublisherTest {
                 Timestamp.from(createdAt)
         );
 
-        messenger.backend.generated.model.Message response = new messenger.backend.generated.model.Message(
+        Message response = new Message(
                 10L,
                 15L,
                 7L,

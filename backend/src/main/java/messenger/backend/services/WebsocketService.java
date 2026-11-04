@@ -3,7 +3,7 @@ package messenger.backend.services;
 import messenger.backend.dtos.*;
 import messenger.backend.exceptions.repostitories.NoSuchMessageException;
 import messenger.backend.exceptions.services.WebsocketServiceException;
-import messenger.backend.messaging.WebSocketMessagePublisher;
+import messenger.backend.messaging.MessageEventPublisher;
 import messenger.backend.repositories.MessagesRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,11 +20,11 @@ public class WebsocketService {
     private final ChatMembershipService chatMembershipService;
     private final MessagesRepository messagesRepository;
 
-    private final WebSocketMessagePublisher messagePublisher;
+    private final MessageEventPublisher messagePublisher;
 
     public WebsocketService(ChatMembershipService chatMembershipService,
                             MessagesRepository mesRepository,
-                            WebSocketMessagePublisher messagePublisher) {
+                            MessageEventPublisher messagePublisher) {
         this.chatMembershipService = chatMembershipService;
         this.messagesRepository = mesRepository;
         this.messagePublisher = messagePublisher;
@@ -34,7 +34,7 @@ public class WebsocketService {
                             String content) throws WebsocketServiceException {
 
         chatMembershipService.checkUserInChat(userId, chatId);
-        messenger.backend.dtos.Message message;
+        MessageDto message;
 
         try {
             message = messagesRepository.insertNewMessageReturnsMessage(new NewMessage(chatId, userId, content));
@@ -58,7 +58,7 @@ public class WebsocketService {
                             String content) throws WebsocketServiceException {
 
         chatMembershipService.checkUserInChat(userId, chatId);
-        messenger.backend.dtos.Message message;
+        MessageDto message;
 
         try {
 

@@ -1,12 +1,12 @@
 package messenger.backend.messaging;
 
-import messenger.backend.dtos.Message;
+import messenger.backend.dtos.MessageDto;
 
 public interface MessageEventPublisher {
 
-    void publishCreated(Message message);
+    void publishCreated(MessageDto message);
 
-    void publishUpdated(Message message);
+    void publishUpdated(MessageDto message);
 
     void publishDeleted(Long chatId, Long messageId);
 }
